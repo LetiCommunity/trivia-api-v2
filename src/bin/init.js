@@ -11,13 +11,13 @@ const init = async () => {
     name: "ADMIN_ROLE",
   });
 
-  const roles = [userRole, adminRole];
+  const newRoles = [userRole, adminRole];
 
-  for (i = 0; i < roles.length; i++) {
-    const roleExisting = await Role.findOne({ name: roles[i].name });
+  for (i = 0; i < newRoles.length; i++) {
+    const roleExisting = await Role.findOne({ name: newRoles[i].name });
     if (!roleExisting) {
       await Role.create({
-        name: roles[i].name,
+        name: newRoles[i].name,
       })
         .then(() => {
           console.log("Role created");
@@ -28,6 +28,7 @@ const init = async () => {
     }
   }
 
+  const roles = await Role.find({}, {"_id": 1});
   const userExisting = await User.findOne({ username: "admin" });
 
   if (userExisting) {

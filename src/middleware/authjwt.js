@@ -13,7 +13,9 @@ verifyToken = (req, res, next) => {
 
   jwt.verify(token, JWT_SECRET, (error, decoded) => {
     if (error) {
-      return res.status(401).send({ message: "Unauthorized! " + error.message });
+      return res
+        .status(401)
+        .send({ message: "Unauthorized! " + error.message });
     }
     req.userId = decoded.id;
     next();
@@ -22,7 +24,7 @@ verifyToken = (req, res, next) => {
 
 isAdmin = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId).populate("Role");
+    const user = await User.findById(req.userId).populate("Role").exec();
 
     for (let i = 0; i < user.roles.length; i++) {
       if (user.roles[i].name === "ADMIN_ROLE") {
@@ -38,8 +40,7 @@ isAdmin = async (req, res, next) => {
 
 isUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId).populate("Role");
-
+    const user = await User.findById(req.userId).populate("roles").exec();
     for (let i = 0; i < user.roles.length; i++) {
       if (user.roles[i].name === "USER_ROLE") {
         return next();
@@ -48,7 +49,9 @@ isUser = async (req, res, next) => {
 
     return res.status(403).json({ message: "Require Admin role" });
   } catch (error) {
-    return res.status(500).json({ message: "Unable to validate User role!" });
+    return res
+      .status(500)
+      .json({ message: "Unable to validate User role! " + error.message });
   }
 };
 

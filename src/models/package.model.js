@@ -19,6 +19,7 @@ const PackageSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  publicationDate: {type: Date.now, required: true}
 });
 
 module.exports = mongoose.model("Package", PackageSchema);

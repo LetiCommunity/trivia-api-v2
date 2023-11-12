@@ -1,5 +1,8 @@
 const express = require("express");
 
+const uuid = require("uuid");
+//const upload = multer({ dest: 'uploads/' });
+
 const Package = require("../models/package.model.js");
 const { routes } = require("../config/routes.js");
 const authjwt = require("../middleware/authjwt.js");
@@ -13,6 +16,19 @@ router.get(routes.index, async (req, res) => {
   const package = await Package.find();
   res.json(package);
 });
+
+router.get(
+  routes.proprietor,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const package = await Package.find({ proprietor: req.userId });
+
+    if (!package) {
+      return res.status(404).json({ message: "Package not found" });
+    }
+    res.json(package);
+  }
+);
 
 // Getting a package by id
 router.get(routes.show, async (req, res) => {
@@ -34,12 +50,12 @@ router.post(
     const {
       description,
       weight,
-      image,
       receiverName,
       receiverSurname,
       receiverAddress,
       receiverPhone,
     } = req.body;
+    const { image } = req.files;
 
     if (
       !description ||
@@ -53,16 +69,22 @@ router.post(
       return res.status(400).json({ message: "Complete all fields" });
     }
 
-    console.log(image)
-    return;
+    imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
+
+    image.mv(`./public/images/${imageFilter}`, (error) => {
+      if (error) return res.status(500).json({ message: error.message });
+    });
+
     const newPackage = new Package({
       description: description,
       weight: weight,
-      image: image,
+      image: imageFilter,
       receiverName: receiverName,
       receiverSurname: receiverSurname,
       receiverAddress: receiverAddress,
       receiverPhone: receiverPhone,
+      status: false,
+      proprietor: req.userId,
     });
 
     await Package.create(newPackage)

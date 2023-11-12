@@ -72,7 +72,7 @@ router.post(routes.signin, async (req, res) => {
     const lowerUsername = username.toLowerCase();
     const userExisting = await User.findOne({
       username: lowerUsername,
-    }).populate("roles");
+    }).populate("roles").exec();
 
     // Check if the user is already
     if (!userExisting) {
@@ -89,7 +89,6 @@ router.post(routes.signin, async (req, res) => {
     }
 
     // Create the token
-    console.log(userExisting._id)
     const token = jwt.sign(
       {
         id: userExisting._id,
