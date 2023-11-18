@@ -18,7 +18,7 @@ router.post(
   [verifySignUp.checkDuplicateUsername],
   async (req, res) => {
     try {
-      const { name, surname, phoneNumber, email, username, password, image } =
+      const { name, surname, phoneNumber, email, username, password } =
         req.body;
 
       if (!name || !surname || !phoneNumber || !username || !password) {
@@ -40,7 +40,7 @@ router.post(
         username: username,
         password: hashedPassword,
         role: [role._id],
-        image: image,
+        status: true,
       });
 
       await User.create(newUser)
@@ -72,7 +72,9 @@ router.post(routes.signin, async (req, res) => {
     const lowerUsername = username.toLowerCase();
     const userExisting = await User.findOne({
       username: lowerUsername,
-    }).populate("roles").exec();
+    })
+      .populate("roles")
+      .exec();
 
     // Check if the user is already
     if (!userExisting) {

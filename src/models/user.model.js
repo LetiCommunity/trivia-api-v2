@@ -12,6 +12,9 @@ const UserSchema = new Schema({
   roles: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Role", required: true },
   ],
+  status: { type: Boolean, required: true },
 });
+
+UserSchema.set("timestamps", true);
 
 module.exports = mongoose.model("User", UserSchema);

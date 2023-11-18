@@ -42,6 +42,17 @@ router.get(routes.show, async (req, res) => {
   res.json(package);
 });
 
+router.get(
+  routes.image,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const { image } = req.params;
+
+    const imagePath = path.join(__dirname, "./public/images/", image);
+    res.sendFile(imagePath);
+  }
+);
+
 // Creating a package
 router.post(
   routes.create,
@@ -83,7 +94,7 @@ router.post(
       receiverSurname: receiverSurname,
       receiverAddress: receiverAddress,
       receiverPhone: receiverPhone,
-      status: false,
+      status: "published",
       proprietor: req.userId,
     });
 

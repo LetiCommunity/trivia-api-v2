@@ -14,6 +14,20 @@ router.get(routes.index, async (req, res) => {
   res.json(travel);
 });
 
+// Getting all travels by user
+router.get(
+  routes.proprietor,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const travel = await Travel.find({ traveler: req.userId });
+
+    if (!travel) {
+      return res.status(404).json({ message: "Travel not found" });
+    }
+    res.json(travel);
+  }
+);
+
 // Getting a travel by id
 router.get(routes.show, async (req, res) => {
   const { id } = req.params;
@@ -64,6 +78,7 @@ router.post(
       company: company,
       billingDate: billingDate,
       availableWeight: availableWeight,
+      traveler: req.userId,
     });
 
     await Travel.create(newTravel)

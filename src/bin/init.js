@@ -46,6 +46,7 @@ const init = async () => {
     username: "admin",
     password: hashedPassword,
     roles: roles,
+    status: true,
   });
 
   await User.create(admin)

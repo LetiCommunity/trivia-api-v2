@@ -4,6 +4,7 @@ module.exports = {
     index: "/",
     proprietor: "/proprietor",
     show: "/:id",
+    image: "/image",
     create: "/",
     update: "/:id",
     delete: "/:id",

@@ -9,7 +9,7 @@ const PackageSchema = new Schema({
   receiverSurname: { type: String, required: true },
   receiverAddress: { type: String, required: true },
   receiverPhone: { type: String, required: true },
-  status: { type: Boolean, required: true },
+  status: { type: String, required: true },
   proprietor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -19,7 +19,8 @@ const PackageSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  publicationDate: {type: Date.now, required: true}
 });
+
+PackageSchema.set("timestamps", true);
 
 module.exports = mongoose.model("Package", PackageSchema);
