@@ -3,8 +3,9 @@ module.exports = {
     // Main routes
     index: "/",
     proprietor: "/proprietor",
+    profile: "/profile",
     show: "/:id",
-    image: "/image",
+    image: "/image/:image",
     create: "/",
     update: "/:id",
     delete: "/:id",

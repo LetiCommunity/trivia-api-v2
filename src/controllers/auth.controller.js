@@ -83,6 +83,12 @@ router.post(routes.signin, async (req, res) => {
         .json({ message: "Incorrect username or password" });
     }
 
+    if (!userExisting.status) {
+      return res
+        .status(400)
+        .json({ message: "This account has been deleted" });
+    }
+
     // Check if the user password is correct
     if (!bcrypt.compareSync(password, userExisting.password)) {
       return res

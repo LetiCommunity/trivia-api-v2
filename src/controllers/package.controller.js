@@ -1,5 +1,6 @@
 const express = require("express");
 
+const path = require("path");
 const uuid = require("uuid");
 //const upload = multer({ dest: 'uploads/' });
 
@@ -46,10 +47,14 @@ router.get(
   routes.image,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
-    const { image } = req.params;
+    try {
+      const { image } = req.params;
 
-    const imagePath = path.join(__dirname, "./public/images/", image);
-    res.sendFile(imagePath);
+      const imagePath = path.join(__dirname, "../public/images/", image);
+      res.sendFile(imagePath);
+    } catch (error) {
+      console.error(error);
+    }
   }
 );
 
