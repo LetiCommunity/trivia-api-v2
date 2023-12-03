@@ -10,53 +10,7 @@ const { JWT_SECRET, TOKEN_EXPIRATION } = require("../config/environment");
 
 const router = express.Router();
 
-/* Login route */
-
-// Logup
-router.post(
-  routes.signup,
-  [verifySignUp.checkDuplicateUsername],
-  async (req, res) => {
-    try {
-      const { name, surname, phoneNumber, email, username, password } =
-        req.body;
-
-      if (!name || !surname || !phoneNumber || !username || !password) {
-        return res
-          .status(400)
-          .json({ message: "Complete the required fields" });
-      }
-
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
-
-      const role = Role.findOne({ name: "USER_ROLE" }, { _id: 1 });
-
-      const newUser = new User({
-        name: name,
-        surname: surname,
-        phoneNumber: phoneNumber,
-        email: email,
-        username: username,
-        password: hashedPassword,
-        role: [role],
-        status: true,
-      });
-
-      await User.create(newUser)
-        .then(() => {
-          res.json({ message: "The user has been created correctly" });
-        })
-        .catch((error) => {
-          res.status(500).json({
-            message: "The user could not be performed: " + error.message,
-          });
-        });
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
-  }
-);
+/* Dashboard login route */
 
 // Login
 router.post(routes.signin, async (req, res) => {
@@ -84,7 +38,9 @@ router.post(routes.signin, async (req, res) => {
     }
 
     if (!userExisting.status) {
-      return res.status(400).json({ message: "This account has been deleted" });
+      return res
+        .status(400)
+        .json({ message: "This account has been deleted" });
     }
 
     // Check if the user password is correct
@@ -113,7 +69,7 @@ router.post(routes.signin, async (req, res) => {
       authorities.push(userExisting.roles[i].name);
     }
 
-    res.cookie("token", token);
+    //res.cookie("token", token);
 
     return res.json({
       user: userExisting,

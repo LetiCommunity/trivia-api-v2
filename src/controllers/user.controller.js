@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 
 const User = require("../models/user.model.js");
+const Role = require("../models/role.model.js");
 const { routes } = require("../config/routes.js");
 const authjwt = require("../middleware/authjwt.js");
 
@@ -12,7 +13,7 @@ const router = express.Router();
 // Getting all users
 router.get(
   routes.index,
-  [authjwt.verifyToken, authjwt.isAdmin],
+  [authjwt.verifyToken, authjwt.isSuperAdmin],
   async (req, res) => {
     const user = await User.find();
     res.json(user);
@@ -22,7 +23,7 @@ router.get(
 // Getting a user by id
 router.get(
   routes.show,
-  [authjwt.verifyToken, authjwt.isAdmin],
+  [authjwt.verifyToken, authjwt.isSuperAdmin],
   async (req, res) => {
     const { id } = req.params;
 
@@ -38,20 +39,11 @@ router.get(
 // Creating a user
 router.post(
   routes.create,
-  [authjwt.verifyToken, authjwt.isAdmin],
+  [authjwt.verifyToken, authjwt.isSuperAdmin],
   async (req, res) => {
-    const {
-      name,
-      surname,
-      phoneNumber,
-      email,
-      username,
-      password,
-      role,
-      image,
-    } = req.body;
+    const { name, surname, phoneNumber, email, username, password } = req.body;
 
-    if (!name || !surname || !phoneNumber || !username || !password) {
+    if (!name || !surname || !phoneNumber || !email || !username || !password) {
       return res.status(400).json({ message: "Complete all fields" });
     }
 
@@ -62,6 +54,7 @@ router.post(
       return res.status(409).json({ message: "This username already exists" });
     }
 
+    const roleExisting = await Role.findOne({ name: "ADMIN_ROLE" }, { _id: 1 });
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
 
@@ -73,8 +66,8 @@ router.post(
       username: username,
       username: lowerUsername,
       password: hashedPassword,
-      role: role,
-      image: image,
+      roles: [roleExisting],
+      status: true,
     });
 
     await User.create(newUser)
@@ -82,11 +75,9 @@ router.post(
         res.json({ message: "The user has been created correctly" });
       })
       .catch((error) => {
-        res
-          .status(500)
-          .json({
-            message: "The user could not be performed: " + error.message,
-          });
+        res.status(500).json({
+          message: "The user could not be performed: " + error.message,
+        });
       });
   }
 );
@@ -94,19 +85,10 @@ router.post(
 // Updating a user
 router.put(
   routes.update,
-  [authjwt.verifyToken, authjwt.isAdmin],
+  [authjwt.verifyToken, authjwt.isSuperAdmin],
   async (req, res) => {
     const { id } = req.params;
-    const {
-      name,
-      surname,
-      phoneNumber,
-      email,
-      username,
-      password,
-      role,
-      image,
-    } = req.body;
+    const { name, surname, phoneNumber, email, username, password } = req.body;
 
     if (!name || !surname || phoneNumber || !username || !password) {
       return res.status(400).json({ message: "Complete all fields" });
@@ -120,8 +102,6 @@ router.put(
       username: username,
       username: lowerUsername,
       password: hashedPassword,
-      role: role,
-      image: image,
     };
 
     const lowerUsername = username.toLowerCase();
@@ -133,11 +113,9 @@ router.put(
         res.json({ message: "The user has been updated correctly" });
       })
       .catch((error) => {
-        res
-          .status(500)
-          .json({
-            message: "The user could not be performed: " + error.message,
-          });
+        res.status(500).json({
+          message: "The user could not be performed: " + error.message,
+        });
       });
   }
 );
@@ -145,7 +123,7 @@ router.put(
 // Deleting a user
 router.delete(
   routes.delete,
-  [authjwt.verifyToken, authjwt.isAdmin],
+  [authjwt.verifyToken, authjwt.isSuperAdmin],
   async (req, res) => {
     const { id } = req.params;
 
@@ -155,11 +133,9 @@ router.delete(
       })
       .catch((error) => {
         console.log(error);
-        res
-          .status(500)
-          .json({
-            message: "The user could not be performed: " + error.message,
-          });
+        res.status(500).json({
+          message: "The user could not be performed: " + error.message,
+        });
       });
   }
 );

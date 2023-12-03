@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 
+app.use("/auth/dashboard", require("../controllers/auth.controller.js"));
 app.use("/auth", require("../controllers/auth.controller.js"));
 app.use("/users", require("../controllers/user.controller.js"));
 app.use("/profiles", require("../controllers/profile.controller.js"));

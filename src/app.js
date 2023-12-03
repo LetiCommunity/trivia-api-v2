@@ -27,9 +27,9 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 // Parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
-// SyntaxError control
-app.use(fileUpload());
 // Upload file
+app.use(fileUpload());
+// SyntaxError control
 app.use(syntaxError);
 //Routes
 app.use("/api/trivia", require("./routes/index"));

@@ -11,7 +11,11 @@ const init = async () => {
     name: "ADMIN_ROLE",
   });
 
-  const newRoles = [userRole, adminRole];
+  const superAdminRole = new Role({
+    name: "SUPER_ADMIN_ROLE",
+  });
+
+  const newRoles = [superAdminRole, adminRole, userRole];
 
   for (i = 0; i < newRoles.length; i++) {
     const roleExisting = await Role.findOne({ name: newRoles[i].name });
@@ -43,6 +47,7 @@ const init = async () => {
     surname: "NVE ANDEME",
     phoneNumber: "+240222589295",
     email: "nveandemecrescencioesono@gmail.com",
+    image: "",
     username: "admin",
     password: hashedPassword,
     roles: roles,

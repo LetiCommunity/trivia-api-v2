@@ -22,19 +22,33 @@ verifyToken = (req, res, next) => {
   });
 };
 
+isSuperAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId).populate("roles").exec();
+    for (let i = 0; i < user.roles.length; i++) {
+      if (user.roles[i].name === "SUPER_ADMIN_ROLE") {
+        return next();
+      }
+    }
+    return res.status(403).json({ message: "Require Super admin role" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Unable to validate Super admin role!" });
+  }
+};
+
 isAdmin = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId).populate("Role").exec();
-
+    const user = await User.findById(req.userId).populate("roles").exec();
     for (let i = 0; i < user.roles.length; i++) {
       if (user.roles[i].name === "ADMIN_ROLE") {
         return next();
       }
     }
-
     return res.status(403).json({ message: "Require Admin role" });
   } catch (error) {
-    return res.status(500).json({ message: "Unable to validate User role!" });
+    return res.status(500).json({ message: "Unable to validate Admin role!" });
   }
 };
 
@@ -46,7 +60,6 @@ isUser = async (req, res, next) => {
         return next();
       }
     }
-
     return res.status(403).json({ message: "Require Admin role" });
   } catch (error) {
     return res
@@ -57,6 +70,7 @@ isUser = async (req, res, next) => {
 
 const authJwt = {
   verifyToken,
+  isSuperAdmin,
   isAdmin,
   isUser,
 };
