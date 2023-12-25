@@ -94,7 +94,7 @@ router.post(
       receiverSurname: receiverSurname,
       receiverAddress: receiverAddress,
       receiverPhone: receiverPhone,
-      status: "published",
+      status: "Publicado",
       proprietor: req.userId,
     });
 
