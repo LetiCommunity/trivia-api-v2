@@ -6,11 +6,8 @@ const uuid = require("uuid");
 const User = require("../models/user.model.js");
 const { routes } = require("../config/routes.js");
 const authjwt = require("../middleware/authjwt.js");
-//const storage = require("../middleware/multer.js");
 
 const router = express.Router();
-
-//const upload = multer({ storage: storage });
 
 router.get(routes.profile, [authjwt.verifyToken], async (req, res) => {
   const id = req.userId;

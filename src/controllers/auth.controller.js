@@ -27,6 +27,7 @@ router.post(
           .json({ message: "Complete the required fields" });
       }
 
+      const lowerUsername = username.toLowerCase();
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(password, salt);
 
@@ -37,7 +38,7 @@ router.post(
         surname: surname,
         phoneNumber: phoneNumber,
         email: email,
-        username: username,
+        username: lowerUsername,
         password: hashedPassword,
         roles: [role],
         status: true,

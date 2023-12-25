@@ -88,9 +88,9 @@ router.put(
   [authjwt.verifyToken, authjwt.isSuperAdmin],
   async (req, res) => {
     const { id } = req.params;
-    const { name, surname, phoneNumber, email, username, password } = req.body;
+    const { name, surname, phoneNumber, email, username } = req.body;
 
-    if (!name || !surname || phoneNumber || !username || !password) {
+    if (!name || !surname || !phoneNumber || !username) {
       return res.status(400).json({ message: "Complete all fields" });
     }
 
@@ -103,9 +103,7 @@ router.put(
       surname: surname,
       phoneNumber: phoneNumber,
       email: email,
-      username: username,
       username: lowerUsername,
-      password: hashedPassword,
     };
     
     await User.findByIdAndUpdate(id, userUpdated)

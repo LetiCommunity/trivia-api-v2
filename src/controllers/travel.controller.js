@@ -10,7 +10,7 @@ const router = express.Router();
 
 // Getting all travels
 router.get(routes.index, async (req, res) => {
-  const travel = await Travel.find();
+  const travel = await Travel.find().populate("user").exec();
   res.json(travel);
 });
 

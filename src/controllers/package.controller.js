@@ -1,7 +1,6 @@
 const express = require("express");
 const path = require("path");
 const uuid = require("uuid");
-//const upload = multer({ dest: 'uploads/' });
 
 const Package = require("../models/package.model.js");
 const { routes } = require("../config/routes.js");
