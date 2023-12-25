@@ -1,11 +1,16 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const path = require("path");
+const uuid = require("uuid");
 
 const User = require("../models/user.model.js");
 const { routes } = require("../config/routes.js");
 const authjwt = require("../middleware/authjwt.js");
+//const storage = require("../middleware/multer.js");
 
 const router = express.Router();
+
+//const upload = multer({ storage: storage });
 
 router.get(routes.profile, [authjwt.verifyToken], async (req, res) => {
   const id = req.userId;
@@ -16,12 +21,33 @@ router.get(routes.profile, [authjwt.verifyToken], async (req, res) => {
   res.json(user);
 });
 
+router.get(routes.image, async (req, res) => {
+  try {
+    const { image } = req.params;
+
+    const imagePath = path.join(__dirname, "../public/images/", image);
+    res.sendFile(imagePath);
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 router.put(routes.profile, [authjwt.verifyToken], async (req, res) => {
   const id = req.userId;
-  const { name, surname, email, username, image } = req.body;
+  const { name, surname, email, username } = req.body;
+  const { image } = req.files;
 
   if (!name || !surname || !email || !username) {
     return res.status(400).json({ message: "Complete all fields" });
+  }
+
+  let imageFilter;
+  if (image) {
+    imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
+
+    image.mv(`./public/images/${imageFilter}`, (error) => {
+      if (error) return res.status(500).json({ message: error.message });
+    });
   }
 
   const userUpdated = {
@@ -29,7 +55,7 @@ router.put(routes.profile, [authjwt.verifyToken], async (req, res) => {
     surname: surname,
     email: email,
     username: username,
-    image: image,
+    image: imageFilter,
   };
 
   await User.findByIdAndUpdate(id, userUpdated)

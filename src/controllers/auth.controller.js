@@ -30,7 +30,7 @@ router.post(
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(password, salt);
 
-      const role = Role.findOne({ name: "USER_ROLE" }, { _id: 1 });
+      const role = await Role.findOne({ name: "USER_ROLE" }, { _id: 1 });
 
       const newUser = new User({
         name: name,
@@ -39,7 +39,7 @@ router.post(
         email: email,
         username: username,
         password: hashedPassword,
-        role: [role],
+        roles: [role],
         status: true,
       });
 

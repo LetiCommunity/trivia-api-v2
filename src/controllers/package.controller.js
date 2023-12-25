@@ -1,5 +1,4 @@
 const express = require("express");
-
 const path = require("path");
 const uuid = require("uuid");
 //const upload = multer({ dest: 'uploads/' });
@@ -43,20 +42,16 @@ router.get(routes.show, async (req, res) => {
   res.json(package);
 });
 
-router.get(
-  routes.image,
-  [authjwt.verifyToken, authjwt.isUser],
-  async (req, res) => {
-    try {
-      const { image } = req.params;
+router.get(routes.image, async (req, res) => {
+  try {
+    const { image } = req.params;
 
-      const imagePath = path.join(__dirname, "../public/images/", image);
-      res.sendFile(imagePath);
-    } catch (error) {
-      console.error(error);
-    }
+    const imagePath = path.join(__dirname, "../public/images/", image);
+    res.sendFile(imagePath);
+  } catch (error) {
+    console.error(error);
   }
-);
+});
 
 // Creating a package
 router.post(
@@ -85,7 +80,7 @@ router.post(
       return res.status(400).json({ message: "Complete all fields" });
     }
 
-    imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
+    let imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
 
     image.mv(`./public/images/${imageFilter}`, (error) => {
       if (error) return res.status(500).json({ message: error.message });
@@ -124,12 +119,12 @@ router.put(
     const {
       description,
       weight,
-      image,
       receiverName,
       receiverSurname,
       receiverAddress,
       receiverPhone,
     } = req.body;
+    const { image } = req.files;
 
     if (
       !description ||

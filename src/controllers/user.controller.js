@@ -94,6 +94,10 @@ router.put(
       return res.status(400).json({ message: "Complete all fields" });
     }
 
+    const lowerUsername = username.toLowerCase();
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
     const userUpdated = {
       name: name,
       surname: surname,
@@ -103,11 +107,7 @@ router.put(
       username: lowerUsername,
       password: hashedPassword,
     };
-
-    const lowerUsername = username.toLowerCase();
-    const salt = bcrypt.genSaltSync(10);
-    const hashedPassword = bcrypt.hashSync(password, salt);
-
+    
     await User.findByIdAndUpdate(id, userUpdated)
       .then(() => {
         res.json({ message: "The user has been updated correctly" });
@@ -126,13 +126,13 @@ router.delete(
   [authjwt.verifyToken, authjwt.isSuperAdmin],
   async (req, res) => {
     const { id } = req.params;
+    const user = await User.findById(id);
 
-    User.deleteOne(id)
+    User.deleteOne(user._id)
       .then(() => {
         res.json({ message: "The user has been deleted correctly" });
       })
       .catch((error) => {
-        console.log(error);
         res.status(500).json({
           message: "The user could not be performed: " + error.message,
         });
