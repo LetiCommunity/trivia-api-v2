@@ -12,7 +12,7 @@ const UserSchema = new Schema({
   roles: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Role", required: true },
   ],
-  status: { type: Boolean, required: true },
+  state: { type: Boolean, required: true },
 });
 
 UserSchema.set("timestamps", true);

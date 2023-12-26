@@ -103,10 +103,10 @@ router.patch(routes.profile, [authjwt.verifyToken], async (req, res) => {
 router.delete(routes.delete, [authjwt.verifyToken], async (req, res) => {
   try {
     const id = req.userId;
-    const statusUpdated = {
-      status: false,
+    const stateUpdated = {
+      state: false,
     };
-    await User.findByIdAndUpdate(id, statusUpdated)
+    await User.findByIdAndUpdate(id, stateUpdated)
       .then(() => {
         res.json({ message: "The account has been disabled correctly" });
       })

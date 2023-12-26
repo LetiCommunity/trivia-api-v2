@@ -8,8 +8,16 @@ const TravelSchema = new Schema({
   airport: { type: String, required: true },
   terminal: { type: String, required: true },
   company: { type: String, required: true },
-  billingTime: { type: Date, required: true },
-  availableWeight: { type: Date, required: true },
+  billingTime: {
+    type: String,
+    validate: {
+      validator: (v) => /^[0-2][0-9]:[0-5][0-9]$/.test(v),
+      message: (props) =>
+        `${props.value} is not a valid hour format. Please use HH:mm:ss`,
+    },
+    required: true,
+  },
+  availableWeight: { type: Number, required: true },
   traveler: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

@@ -37,7 +37,7 @@ router.post(routes.signin, async (req, res) => {
         .json({ message: "Incorrect username or password" });
     }
 
-    if (!userExisting.status) {
+    if (!userExisting.state) {
       return res
         .status(400)
         .json({ message: "This account has been deleted" });

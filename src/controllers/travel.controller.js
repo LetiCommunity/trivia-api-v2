@@ -9,8 +9,18 @@ const router = express.Router();
 /* User routes */
 
 // Getting all travels
-router.get(routes.index, async (req, res) => {
-  const travel = await Travel.find().populate("user").exec();
+router.get(
+  routes.index,
+  [authjwt.verifyToken, authjwt.isAdmin],
+  async (req, res) => {
+    const travel = await Travel.find().populate("user").exec();
+    res.json(travel);
+  }
+);
+
+router.get(routes.indexByDate, async (req, res) => {
+  const currentDate = new Date();
+  const travel = await Travel.find({ date: { $gt: currentDate } }).exec();
   res.json(travel);
 });
 
@@ -89,6 +99,7 @@ router.post(
         res.status(500).json({
           message: "The travel could not be performed: " + error.message,
         });
+        console.error(error.message);
       });
   }
 );

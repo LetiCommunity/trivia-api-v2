@@ -67,7 +67,7 @@ router.post(
       username: lowerUsername,
       password: hashedPassword,
       roles: [roleExisting],
-      status: true,
+      state: true,
     });
 
     await User.create(newUser)

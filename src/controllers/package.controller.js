@@ -11,11 +11,22 @@ const router = express.Router();
 /* Package routes */
 
 // Getting all packages
-router.get(routes.index, async (req, res) => {
+router.get(
+  routes.index,
+  [authjwt.verifyToken, authjwt.isAdmin],
+  async (req, res) => {
+    const package = await Package.find();
+    res.json(package);
+  }
+);
+
+// Getting all packages by state
+router.get(routes.indexByState, async (req, res) => {
   const package = await Package.find();
   res.json(package);
 });
 
+// Getting all packages by propietor
 router.get(
   routes.proprietor,
   [authjwt.verifyToken, authjwt.isUser],
@@ -41,6 +52,7 @@ router.get(routes.show, async (req, res) => {
   res.json(package);
 });
 
+// Getting a package image
 router.get(routes.image, async (req, res) => {
   try {
     const { image } = req.params;
@@ -93,7 +105,7 @@ router.post(
       receiverSurname: receiverSurname,
       receiverAddress: receiverAddress,
       receiverPhone: receiverPhone,
-      status: "Publicado",
+      state: "Publicado",
       proprietor: req.userId,
     });
 
@@ -166,7 +178,9 @@ router.delete(
   async (req, res) => {
     const { id } = req.params;
 
-    Package.deleteOne(id)
+    const package = await Package.findById(id);
+
+    Package.deleteOne(package._id)
       .then(() => {
         res.json({ message: "The package has been deleted correctly" });
       })

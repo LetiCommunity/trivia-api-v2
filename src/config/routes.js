@@ -12,5 +12,9 @@ module.exports = {
     signup: "/signup",
     signin: "/signin",
     signout: "/signout",
+
+    // Filter routes
+    indexByDate: "/filterByDate",
+    indexByState: "/filterByState",
   },
 };
