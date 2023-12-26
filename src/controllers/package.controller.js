@@ -21,10 +21,14 @@ router.get(
 );
 
 // Getting all packages by state
-router.get(routes.indexByState, async (req, res) => {
-  const package = await Package.find();
-  res.json(package);
-});
+router.get(
+  routes.indexByState,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const package = await Package.find({ state: "Publicado" });
+    res.json(package);
+  }
+);
 
 // Getting all packages by propietor
 router.get(
@@ -74,7 +78,8 @@ router.post(
       weight,
       receiverName,
       receiverSurname,
-      receiverAddress,
+      receiverCity,
+      receiverStreet,
       receiverPhone,
     } = req.body;
     const { image } = req.files;
@@ -85,7 +90,8 @@ router.post(
       !image ||
       !receiverName ||
       !receiverSurname ||
-      !receiverAddress ||
+      !receiverCity ||
+      !receiverStreet ||
       !receiverPhone
     ) {
       return res.status(400).json({ message: "Complete all fields" });
@@ -103,7 +109,8 @@ router.post(
       image: imageFilter,
       receiverName: receiverName,
       receiverSurname: receiverSurname,
-      receiverAddress: receiverAddress,
+      receiverCity: receiverCity,
+      receiverStreet: receiverStreet,
       receiverPhone: receiverPhone,
       state: "Publicado",
       proprietor: req.userId,
@@ -132,7 +139,8 @@ router.put(
       weight,
       receiverName,
       receiverSurname,
-      receiverAddress,
+      receiverCity,
+      receiverStreet,
       receiverPhone,
     } = req.body;
     const { image } = req.files;
@@ -143,7 +151,8 @@ router.put(
       !image ||
       !receiverName ||
       !receiverSurname ||
-      !receiverAddress ||
+      !receiverCity ||
+      !receiverStreet ||
       !receiverPhone
     ) {
       return res.status(400).json({ message: "Complete all fields" });
@@ -155,7 +164,8 @@ router.put(
       image: image,
       receiverName: receiverName,
       receiverSurname: receiverSurname,
-      receiverAddress: receiverAddress,
+      receiverCity: receiverCity,
+      receiverStreet: receiverStreet,
       receiverPhone: receiverPhone,
     };
 

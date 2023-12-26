@@ -7,7 +7,8 @@ const PackageSchema = new Schema({
   image: { type: String, required: true },
   receiverName: { type: String, required: true },
   receiverSurname: { type: String, required: true },
-  receiverAddress: { type: String, required: true },
+  receiverCity: { type: String, required: true },
+  receiverStreet: { type: String, required: true },
   receiverPhone: { type: String, required: true },
   state: { type: String, required: true },
   proprietor: {
