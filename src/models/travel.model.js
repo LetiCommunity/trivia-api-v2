@@ -8,7 +8,7 @@ const TravelSchema = new Schema({
   airport: { type: String, required: true },
   terminal: { type: String, required: true },
   company: { type: String, required: true },
-  billingDate: { type: Date, required: true },
+  billingTime: { type: Date, required: true },
   availableWeight: { type: Date, required: true },
   traveler: {
     type: mongoose.Schema.Types.ObjectId,

@@ -52,7 +52,7 @@ router.post(
       airport,
       terminal,
       company,
-      billingDate,
+      billingTime,
       availableWeight,
     } = req.body;
 
@@ -63,7 +63,7 @@ router.post(
       !airport ||
       !terminal ||
       !company ||
-      !billingDate ||
+      !billingTime ||
       !availableWeight
     ) {
       return res.status(400).json({ message: "Complete all fields" });
@@ -76,7 +76,7 @@ router.post(
       airport: airport,
       terminal: terminal,
       company: company,
-      billingDate: billingDate,
+      billingTime: billingTime,
       availableWeight: availableWeight,
       traveler: req.userId,
     });
@@ -106,7 +106,7 @@ router.put(
       airport,
       terminal,
       company,
-      billingDate,
+      billingTime,
       availableWeight,
     } = req.body;
 
@@ -117,7 +117,7 @@ router.put(
       !airport ||
       !terminal ||
       !company ||
-      !billingDate ||
+      !billingTime ||
       !availableWeight
     ) {
       return res.status(400).json({ message: "Complete all fields" });
@@ -130,7 +130,7 @@ router.put(
       airport: airport,
       terminal: terminal,
       company: company,
-      billingDate: billingDate,
+      billingTime: billingTime,
       availableWeight: availableWeight,
     };
 
@@ -152,8 +152,9 @@ router.delete(
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     const { id } = req.params;
+    const travel = await Travel.findById(id);
 
-    Travel.deleteOne(id)
+    Travel.deleteOne(travel._id)
       .then(() => {
         res.json({ message: "The travel has been deleted correctly" });
       })
