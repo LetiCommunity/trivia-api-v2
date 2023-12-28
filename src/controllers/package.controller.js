@@ -15,8 +15,12 @@ router.get(
   routes.index,
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
-    const package = await Package.find();
-    res.json(package);
+    try {
+      const package = await Package.find();
+      res.json(package);
+    } catch (error) {
+      res.json({ message: error.message });
+    }
   }
 );
 
@@ -25,8 +29,12 @@ router.get(
   routes.indexByState,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
-    const package = await Package.find({ state: "Publicado" });
-    res.json(package);
+    try {
+      const package = await Package.find({ state: "Publicado" });
+      res.json(package);
+    } catch (error) {
+      res.json({ message: error.message });
+    }
   }
 );
 
@@ -35,32 +43,36 @@ router.get(
   routes.proprietor,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
-    const package = await Package.find({ proprietor: req.userId });
-
-    if (!package) {
-      return res.status(404).json({ message: "Package not found" });
+    try {
+      const package = await Package.find({ proprietor: req.userId });
+      if (!package) {
+        return res.status(404).json({ message: "Package not found" });
+      }
+      res.json(package);
+    } catch (error) {
+      res.json({ message: error.message });
     }
-    res.json(package);
   }
 );
 
 // Getting a package by id
 router.get(routes.show, async (req, res) => {
-  const { id } = req.params;
-
-  const package = await Package.findById(id);
-
-  if (!package) {
-    return res.status(404).json({ message: "Package not found" });
+  try {
+    const { id } = req.params;
+    const package = await Package.findById(id);
+    if (!package) {
+      return res.status(404).json({ message: "Package not found" });
+    }
+    res.json(package);
+  } catch (error) {
+    res.json({ message: error.message });
   }
-  res.json(package);
 });
 
 // Getting a package image
 router.get(routes.image, async (req, res) => {
   try {
     const { image } = req.params;
-
     const imagePath = path.join(__dirname, "../public/images/", image);
     res.sendFile(imagePath);
   } catch (error) {
@@ -114,6 +126,68 @@ router.post(
       receiverPhone: receiverPhone,
       state: "Publicado",
       proprietor: req.userId,
+    });
+
+    await Package.create(newPackage)
+      .then(() => {
+        res.json({ message: "The package has been created correctly" });
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "The package could not be performed: " + error.message,
+        });
+      });
+  }
+);
+
+// Creating a package
+router.post(
+  routes.packageSendRequest,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const {
+      description,
+      weight,
+      receiverName,
+      receiverSurname,
+      receiverCity,
+      receiverStreet,
+      receiverPhone,
+    } = req.body;
+    const { image } = req.files;
+    const { traveler } = req.params;
+    if (
+      !description ||
+      !weight ||
+      !image ||
+      !receiverName ||
+      !receiverSurname ||
+      !receiverCity ||
+      !receiverStreet ||
+      !receiverPhone ||
+      !traveler
+    ) {
+      return res.status(400).json({ message: "Complete all fields" });
+    }
+
+    let imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
+
+    image.mv(`./public/images/${imageFilter}`, (error) => {
+      if (error) return res.status(500).json({ message: error.message });
+    });
+
+    const newPackage = new Package({
+      description: description,
+      weight: weight,
+      image: imageFilter,
+      receiverName: receiverName,
+      receiverSurname: receiverSurname,
+      receiverCity: receiverCity,
+      receiverStreet: receiverStreet,
+      receiverPhone: receiverPhone,
+      state: "Proceso",
+      proprietor: req.userId,
+      traveler: traveler,
     });
 
     await Package.create(newPackage)

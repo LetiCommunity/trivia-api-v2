@@ -13,28 +13,49 @@ router.get(
   routes.index,
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
-    const travel = await Travel.find().populate("user").exec();
-    res.json(travel);
+    try {
+      const travel = await Travel.find()
+        .populate("traveler")
+        .sort({ date: 1 })
+        .exec();
+      res.json(travel);
+    } catch (error) {
+      res.json({ message: error.message });
+    }
   }
 );
 
 // Getting all next travels
 router.get(routes.indexByDate, async (req, res) => {
-  const currentDate = new Date();
-  const travel = await Travel.find({ date: { $gt: currentDate } }).exec();
-  res.json(travel);
+  try {
+    const currentDate = new Date();
+    const travel = await Travel.find({ date: { $gt: currentDate } })
+      .populate("traveler")
+      .sort({ date: 1 })
+      .exec();
+    res.json(travel);
+  } catch (error) {
+    res.json({ message: error.message });
+  }
 });
 
 // Getting all next travels by origin and destination
 router.get(routes.indexByCity, async (req, res) => {
-  const { origin, destination } = req.params;
-  const currentDate = new Date();
-  const travel = await Travel.find({
-    date: { $gt: currentDate },
-    origin: origin,
-    destination: destination,
-  }).exec();
-  res.json(travel);
+  try {
+    const { origin, destination } = req.params;
+    const currentDate = new Date();
+    const travel = await Travel.find({
+      date: { $gt: currentDate },
+      origin: origin,
+      destination: destination,
+    })
+      .populate("traveler")
+      .sort({ date: 1 })
+      .exec();
+    res.json(travel);
+  } catch (error) {
+    res.json({ message: error.message });
+  }
 });
 
 // Getting all travels by user
@@ -42,25 +63,30 @@ router.get(
   routes.proprietor,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
-    const travel = await Travel.find({ traveler: req.userId });
-
-    if (!travel) {
-      return res.status(404).json({ message: "Travel not found" });
+    try {
+      const travel = await Travel.find({ traveler: req.userId });
+      if (!travel) {
+        return res.status(404).json({ message: "Travel not found" });
+      }
+      res.json(travel);
+    } catch (error) {
+      res.json({ message: error.message });
     }
-    res.json(travel);
   }
 );
 
 // Getting a travel by id
 router.get(routes.show, async (req, res) => {
-  const { id } = req.params;
-
-  const travel = await Travel.findById(id);
-
-  if (!travel) {
-    return res.status(404).json({ message: "User not found" });
+  try {
+    const { id } = req.params;
+    const travel = await Travel.findById(id).populate("traveler").exec();
+    if (!travel) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(travel);
+  } catch (error) {
+    res.json({ message: error.message });
   }
-  res.json(travel);
 });
 
 // Creating a travel
