@@ -18,9 +18,22 @@ router.get(
   }
 );
 
+// Getting all next travels
 router.get(routes.indexByDate, async (req, res) => {
   const currentDate = new Date();
   const travel = await Travel.find({ date: { $gt: currentDate } }).exec();
+  res.json(travel);
+});
+
+// Getting all next travels by origin and destination
+router.get(routes.indexByCity, async (req, res) => {
+  const { origin, destination } = req.params;
+  const currentDate = new Date();
+  const travel = await Travel.find({
+    date: { $gt: currentDate },
+    origin: origin,
+    destination: destination,
+  }).exec();
   res.json(travel);
 });
 

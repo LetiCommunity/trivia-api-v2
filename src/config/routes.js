@@ -15,6 +15,7 @@ module.exports = {
 
     // Filter routes
     indexByDate: "/filterByDate",
+    indexByCity: "/filterByCity/:origin/:destination",
     indexByState: "/filterByState",
   },
 };
