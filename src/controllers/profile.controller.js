@@ -32,19 +32,9 @@ router.get(routes.image, async (req, res) => {
 router.put(routes.profile, [authjwt.verifyToken], async (req, res) => {
   const id = req.userId;
   const { name, surname, email, username } = req.body;
-  const { image } = req.files;
 
   if (!name || !surname || !email || !username) {
     return res.status(400).json({ message: "Complete all fields" });
-  }
-
-  let imageFilter;
-  if (image) {
-    imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
-
-    image.mv(`./public/images/${imageFilter}`, (error) => {
-      if (error) return res.status(500).json({ message: error.message });
-    });
   }
 
   const userUpdated = {
@@ -52,12 +42,13 @@ router.put(routes.profile, [authjwt.verifyToken], async (req, res) => {
     surname: surname,
     email: email,
     username: username,
-    image: imageFilter,
   };
 
   await User.findByIdAndUpdate(id, userUpdated)
-    .then(() => {
-      res.json({ message: "The user has been updated correctly" });
+    .then((user) => {
+      return res.json({
+        user: user,
+      });
     })
     .catch((error) => {
       res.status(500).json({
@@ -66,7 +57,7 @@ router.put(routes.profile, [authjwt.verifyToken], async (req, res) => {
     });
 });
 
-router.patch(routes.profile, [authjwt.verifyToken], async (req, res) => {
+router.patch(routes.changePassword, [authjwt.verifyToken], async (req, res) => {
   try {
     const id = req.userId;
     const { currentPassword, newPassword } = req.body;
@@ -99,6 +90,39 @@ router.patch(routes.profile, [authjwt.verifyToken], async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 });
+
+router.patch(
+  routes.changeProfileImage,
+  [authjwt.verifyToken],
+  async (req, res) => {
+    try {
+      const { image } = req.files;
+      let imageFilter;
+      if (image) {
+        imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
+        image.mv(`./public/images/${imageFilter}`, (error) => {
+          if (error) return res.status(500).json({ message: error.message });
+        });
+      }
+      const imageProfileUpdated = {
+        image: imageFilter,
+      };
+      await User.findByIdAndUpdate(id, imageProfileUpdated)
+        .then((user) => {
+          return res.json({
+            user: user,
+          });
+        })
+        .catch((error) => {
+          res.status(500).json({
+            message: "The user could not be performed: " + error.message,
+          });
+        });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+);
 
 router.delete(routes.delete, [authjwt.verifyToken], async (req, res) => {
   try {

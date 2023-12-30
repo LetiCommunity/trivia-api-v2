@@ -17,6 +17,10 @@ module.exports = {
     indexByDate: "/filterByDate",
     indexByCity: "/filterByCity/:origin/:destination",
     indexByState: "/filterByState",
+    indexByTraveler: "/filterByTraveler",
+    indexByMatch: "/filterByMatch",
     packageSendRequest: "/:traveler",
+    changeProfileImage: "/profile/image",
+    changePassword: "/profile/password",
   },
 };

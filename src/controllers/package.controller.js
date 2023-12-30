@@ -3,6 +3,7 @@ const path = require("path");
 const uuid = require("uuid");
 
 const Package = require("../models/package.model.js");
+const Travel = require("../models/travel.model.js");
 const { routes } = require("../config/routes.js");
 const authjwt = require("../middleware/authjwt.js");
 
@@ -27,10 +28,61 @@ router.get(
 // Getting all packages by state
 router.get(
   routes.indexByState,
-  [authjwt.verifyToken, authjwt.isUser],
+  [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
       const package = await Package.find({ state: "Publicado" });
+      res.json(package);
+    } catch (error) {
+      res.json({ message: error.message });
+    }
+  }
+);
+
+// Getting all packages whose state is published
+// router.get(
+//   routes.indexByState,
+//   [authjwt.verifyToken, authjwt.isUser],
+//   async (req, res) => {
+//     try {
+//       const travel = await Travel.find({ traveler: req.userId });
+//       const package = await Package.find({
+//         state: "Publicado",
+//         receiverCity: travel.destination,
+//       });
+//       res.json(package);
+//     } catch (error) {
+//       res.json({ message: error.message });
+//     }
+//   }
+// );
+
+// Getting package send request
+router.get(
+  routes.indexByTraveler,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    try {
+      const package = await Package.find({
+        $and: [{ traveler: req.userId }, { state: "Proceso" }],
+      });
+      res.json(package);
+    } catch (error) {
+      res.json({ message: error.message });
+    }
+  }
+);
+
+// Getting package by Match
+router.get(
+  routes.indexByMatch,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    try {
+      const travel = await Travel.find({ traveler: req.userId });
+      const package = await Package.find({
+        $and: [{ receiverCity: travel.destination }, { state: "Publicado" }],
+      });
       res.json(package);
     } catch (error) {
       res.json({ message: error.message });
@@ -45,6 +97,26 @@ router.get(
   async (req, res) => {
     try {
       const package = await Package.find({ proprietor: req.userId });
+      if (!package) {
+        return res.status(404).json({ message: "Package not found" });
+      }
+      res.json(package);
+    } catch (error) {
+      res.json({ message: error.message });
+    }
+  }
+);
+
+// Getting all packages by propietor and whose state is not Published
+router.get(
+  routes.proprietor,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    try {
+      const package = await Package.find({
+        proprietor: req.userId,
+        state: "Proceso",
+      });
       if (!package) {
         return res.status(404).json({ message: "Package not found" });
       }
@@ -126,6 +198,7 @@ router.post(
       receiverPhone: receiverPhone,
       state: "Publicado",
       proprietor: req.userId,
+      traveler: null,
     });
 
     await Package.create(newPackage)
@@ -140,7 +213,7 @@ router.post(
   }
 );
 
-// Creating a package
+// Creating a package whit send request
 router.post(
   routes.packageSendRequest,
   [authjwt.verifyToken, authjwt.isUser],
