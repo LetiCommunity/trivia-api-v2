@@ -25,7 +25,7 @@ router.get(
   }
 );
 
-// Getting all packages by state
+// Getting all packages whose state is published
 router.get(
   routes.indexByState,
   [authjwt.verifyToken, authjwt.isAdmin],
@@ -39,23 +39,21 @@ router.get(
   }
 );
 
-// Getting all packages whose state is published
-// router.get(
-//   routes.indexByState,
-//   [authjwt.verifyToken, authjwt.isUser],
-//   async (req, res) => {
-//     try {
-//       const travel = await Travel.find({ traveler: req.userId });
-//       const package = await Package.find({
-//         state: "Publicado",
-//         receiverCity: travel.destination,
-//       });
-//       res.json(package);
-//     } catch (error) {
-//       res.json({ message: error.message });
-//     }
-//   }
-// );
+// Getting all packages whose state is not published
+router.get(
+  routes.indexIsNotPublished,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    try {
+      const package = await Package.find({
+        state: { $ne: "Publicado" },
+      });
+      res.json(package);
+    } catch (error) {
+      res.json({ message: error.message });
+    }
+  }
+);
 
 // Getting package send request
 router.get(
@@ -228,7 +226,7 @@ router.post(
       receiverPhone,
     } = req.body;
     const { image } = req.files;
-    const { traveler } = req.params;
+    const traveler = req.userId;
     if (
       !description ||
       !weight ||
@@ -317,6 +315,34 @@ router.put(
     };
 
     await Package.findByIdAndUpdate(id, packageUpdated)
+      .then(() => {
+        res.json({ message: "The package has been updated correctly" });
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "The package could not be performed: " + error.message,
+        });
+      });
+  }
+);
+
+// To confirm package send
+router.patch(
+  routes.packageSendConfirmation,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const { package } = req.params;
+    const { state } = req.body;
+
+    if (!state) {
+      return res.status(400).json({ message: "Complete all fields" });
+    }
+
+    const packageUpdated = {
+      state: state,
+    };
+
+    await Package.findByIdAndUpdate(package, packageUpdated)
       .then(() => {
         res.json({ message: "The package has been updated correctly" });
       })
