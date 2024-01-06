@@ -327,19 +327,37 @@ router.put(
 );
 
 // To confirm package send
-router.patch(
+router.get(
   routes.packageSendConfirmation,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     const { package } = req.params;
-    const { state } = req.body;
-
-    if (!state) {
-      return res.status(400).json({ message: "Complete all fields" });
-    }
 
     const packageUpdated = {
-      state: state,
+      state: "Aprobado",
+    };
+
+    await Package.findByIdAndUpdate(package, packageUpdated)
+      .then(() => {
+        res.json({ message: "The package has been updated correctly" });
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "The package could not be performed: " + error.message,
+        });
+      });
+  }
+);
+
+// To Reject package send
+router.get(
+  routes.packageSendRejection,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const { package } = req.params;
+
+    const packageUpdated = {
+      state: "Rechazado",
     };
 
     await Package.findByIdAndUpdate(package, packageUpdated)

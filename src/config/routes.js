@@ -22,7 +22,7 @@ module.exports = {
     indexIsNotPublished: "/filterIsNotPublished",
     packageSendRequest: "/request",
     packageSendConfirmation: "/confirmation/:package",
-    //packageSendReject: "/:package",
+    packageSendRejection: "/rejection/:package",
     changeProfileImage: "/profile/image",
     changePassword: "/profile/password",
   },
