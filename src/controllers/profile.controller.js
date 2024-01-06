@@ -97,6 +97,7 @@ router.patch(
   async (req, res) => {
     try {
       const { image } = req.files;
+      const id = req.userId;
       let imageFilter;
       if (image) {
         imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
