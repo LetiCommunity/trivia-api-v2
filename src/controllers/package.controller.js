@@ -226,7 +226,7 @@ router.post(
       receiverPhone,
     } = req.body;
     const { image } = req.files;
-    const traveler = req.userId;
+    const { traveler } = req.params;
     if (
       !description ||
       !weight ||
@@ -358,6 +358,29 @@ router.get(
 
     const packageUpdated = {
       state: "Rechazado",
+    };
+
+    await Package.findByIdAndUpdate(package, packageUpdated)
+      .then(() => {
+        res.json({ message: "The package has been updated correctly" });
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "The package could not be performed: " + error.message,
+        });
+      });
+  }
+);
+
+// To cancel package send
+router.get(
+  routes.packageSendCancelation,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const { package } = req.params;
+
+    const packageUpdated = {
+      state: "Cancelado",
     };
 
     await Package.findByIdAndUpdate(package, packageUpdated)

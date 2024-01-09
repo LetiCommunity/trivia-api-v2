@@ -196,6 +196,29 @@ router.put(
   }
 );
 
+// To cancel travel publish
+router.get(
+  routes.travelPublishCancelation,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const { travel } = req.params;
+
+    const travelUpdated = {
+      state: "Cancelado",
+    };
+
+    await Travel.findByIdAndUpdate(travel, travelUpdated)
+      .then(() => {
+        res.json({ message: "The travel has been updated correctly" });
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "The travel could not be performed: " + error.message,
+        });
+      });
+  }
+);
+
 // Deleting a travel
 router.delete(
   routes.delete,
