@@ -357,7 +357,7 @@ router.get(
     const { package } = req.params;
 
     const packageUpdated = {
-      state: "Rechazado",
+      state: "Publicado",
     };
 
     await Package.findByIdAndUpdate(package, packageUpdated)
