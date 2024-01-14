@@ -17,8 +17,8 @@ router.get(
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const package = await Package.find();
-      res.json(package);
+      const packages = await Package.find();
+      res.json(packages);
     } catch (error) {
       res.json({ message: error.message });
     }
@@ -31,8 +31,8 @@ router.get(
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const package = await Package.find({ state: "Publicado" });
-      res.json(package);
+      const packages = await Package.find({ state: "Publicado" });
+      res.json(packages);
     } catch (error) {
       res.json({ message: error.message });
     }
@@ -45,10 +45,10 @@ router.get(
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     try {
-      const package = await Package.find({
+      const packages = await Package.find({
         state: { $ne: "Publicado" },
       });
-      res.json(package);
+      res.json(packages);
     } catch (error) {
       res.json({ message: error.message });
     }
@@ -57,14 +57,14 @@ router.get(
 
 // Getting package send request
 router.get(
-  routes.indexByTraveler,
+  routes.indexByRequest,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     try {
-      const package = await Package.find({
+      const packages = await Package.find({
         $and: [{ traveler: req.userId }, { state: "Proceso" }],
       });
-      res.json(package);
+      res.json(packages);
     } catch (error) {
       res.json({ message: error.message });
     }
@@ -77,11 +77,14 @@ router.get(
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     try {
-      const travel = await Travel.find({ traveler: req.userId });
-      const package = await Package.find({
+      const currentDate = new Date();
+      const travel = await Travel.findOne({
+        $and: [{ traveler: req.userId }, { date: { $gt: currentDate } }],
+      });
+      const packages = await Package.findOne({
         $and: [{ receiverCity: travel.destination }, { state: "Publicado" }],
       });
-      res.json(package);
+      res.json(packages);
     } catch (error) {
       res.json({ message: error.message });
     }
@@ -94,11 +97,13 @@ router.get(
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     try {
-      const package = await Package.find({ proprietor: req.userId });
-      if (!package) {
+      const packages = await Package.find({
+        $and: [{ proprietor: req.userId }, { state: { $ne: "Cancelado" } }],
+      });
+      if (!packages) {
         return res.status(404).json({ message: "Package not found" });
       }
-      res.json(package);
+      res.json(packages);
     } catch (error) {
       res.json({ message: error.message });
     }
@@ -111,14 +116,14 @@ router.get(
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     try {
-      const package = await Package.find({
+      const packages = await Package.find({
         proprietor: req.userId,
         state: "Proceso",
       });
-      if (!package) {
+      if (!packages) {
         return res.status(404).json({ message: "Package not found" });
       }
-      res.json(package);
+      res.json(packages);
     } catch (error) {
       res.json({ message: error.message });
     }
@@ -332,7 +337,6 @@ router.get(
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     const { package } = req.params;
-
     const packageUpdated = {
       state: "Aprobado",
     };
@@ -355,41 +359,39 @@ router.get(
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     const { package } = req.params;
-
     const packageUpdated = {
       state: "Publicado",
     };
 
     await Package.findByIdAndUpdate(package, packageUpdated)
       .then(() => {
-        res.json({ message: "The package has been updated correctly" });
+        res.json({ message: "The package has been rejected" });
       })
       .catch((error) => {
         res.status(500).json({
-          message: "The package could not be performed: " + error.message,
+          message: "The package could not be rejected: " + error.message,
         });
       });
   }
 );
 
 // To cancel package send
-router.get(
+router.delete(
   routes.packageSendCancelation,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     const { package } = req.params;
-
     const packageUpdated = {
       state: "Cancelado",
     };
 
     await Package.findByIdAndUpdate(package, packageUpdated)
       .then(() => {
-        res.json({ message: "The package has been updated correctly" });
+        res.json({ message: "The package has been calceled correctly" });
       })
       .catch((error) => {
         res.status(500).json({
-          message: "The package could not be performed: " + error.message,
+          message: "The package could not be calceled: " + error.message,
         });
       });
   }
@@ -398,13 +400,12 @@ router.get(
 // Deleting a package
 router.delete(
   routes.delete,
-  [authjwt.verifyToken, authjwt.isUser],
+  [authjwt.verifyToken, authjwt.isSuperAdmin],
   async (req, res) => {
     const { id } = req.params;
-
     const package = await Package.findById(id);
-
-    Package.deleteOne(package._id)
+    
+    await Package.deleteOne(package._id)
       .then(() => {
         res.json({ message: "The package has been deleted correctly" });
       })

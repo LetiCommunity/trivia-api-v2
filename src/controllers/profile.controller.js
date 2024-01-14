@@ -10,22 +10,25 @@ const authjwt = require("../middleware/authjwt.js");
 const router = express.Router();
 
 router.get(routes.profile, [authjwt.verifyToken], async (req, res) => {
-  const id = req.userId;
-  const user = await User.findById(id);
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+  try {
+    const id = req.userId;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-  res.json(user);
 });
 
 router.get(routes.image, async (req, res) => {
   try {
     const { image } = req.params;
-
     const imagePath = path.join(__dirname, "../public/images/", image);
     res.sendFile(imagePath);
   } catch (error) {
-    console.error(error);
+    res.status(500).json({ message: error.message });
   }
 });
 

@@ -23,6 +23,7 @@ const TravelSchema = new Schema({
     ref: "User",
     required: true,
   },
+  state: { type: Boolean, required: true },
 });
 
 TravelSchema.set("timestamps", true);

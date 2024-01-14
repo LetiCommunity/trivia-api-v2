@@ -17,7 +17,7 @@ module.exports = {
     indexByDate: "/filterByDate",
     indexByCity: "/filterByCity/:origin/:destination",
     indexByState: "/filterByState",
-    indexByTraveler: "/filterByTraveler",
+    indexByRequest: "/filterByRequest",
     indexByMatch: "/filterByMatch",
     indexIsNotPublished: "/filterIsNotPublished",
     packageSendRequest: "/request/:traveler",
