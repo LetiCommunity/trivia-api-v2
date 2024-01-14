@@ -331,9 +331,9 @@ router.put(
   }
 );
 
-// To confirm package send
+// To confirm package send request
 router.get(
-  routes.packageSendConfirmation,
+  routes.packageSendRequestConfirmation,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     const { package } = req.params;
@@ -353,9 +353,32 @@ router.get(
   }
 );
 
+// To confirm package send suggestion
+router.get(
+  routes.packageSendSuggestionConfirmation,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    const { package } = req.params;
+    const packageUpdated = {
+      state: "Aprobado",
+      traveler: req.userId,
+    };
+
+    await Package.findByIdAndUpdate(package, packageUpdated)
+      .then(() => {
+        res.json({ message: "The package has been updated correctly" });
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "The package could not be performed: " + error.message,
+        });
+      });
+  }
+);
+
 // To Reject package send
 router.get(
-  routes.packageSendRejection,
+  routes.packageSendRequestRejection,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     const { package } = req.params;
@@ -404,7 +427,7 @@ router.delete(
   async (req, res) => {
     const { id } = req.params;
     const package = await Package.findById(id);
-    
+
     await Package.deleteOne(package._id)
       .then(() => {
         res.json({ message: "The package has been deleted correctly" });
