@@ -376,7 +376,7 @@ router.get(
   async (req, res) => {
     const { package } = req.params;
     const packageUpdated = {
-      state: "Aprobado",
+      state: "Aceptado",
       traveler: req.userId,
     };
 
