@@ -98,7 +98,7 @@ router.get(
   async (req, res) => {
     try {
       const packages = await Package.find({
-        $and: [{ traveler: req.userId }, { state: "Aprobado" }],
+        $and: [{ proprietor: req.userId }, { state: "Aprobado" }],
       });
       res.json(packages);
     } catch (error) {
