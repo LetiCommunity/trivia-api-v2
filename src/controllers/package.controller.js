@@ -98,7 +98,7 @@ router.get(
   async (req, res) => {
     try {
       const packages = await Package.find({
-        $and: [{ traveler: req.userId }, { state: "Aceptado" }],
+        $and: [{ traveler: req.userId }, { state: "Aprobado" }],
       });
       res.json(packages);
     } catch (error) {
@@ -376,7 +376,7 @@ router.get(
   async (req, res) => {
     const { package } = req.params;
     const packageUpdated = {
-      state: "Aceptado",
+      state: "Aprobado",
       traveler: req.userId,
     };
 
