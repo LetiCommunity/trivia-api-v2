@@ -19,6 +19,7 @@ module.exports = {
     indexByState: "/filterByState",
     indexByRequest: "/filterByRequest",
     indexByMatch: "/filterByMatch",
+    indexByAcceptedRequest: "/filterByAcceptedRequest",
     indexIsNotPublished: "/filterIsNotPublished",
     packageSendSuggestionConfirmation: "/suggestions/confirmation/:package",
     packageSendRequest: "/requests/:traveler",

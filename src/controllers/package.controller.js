@@ -91,6 +91,22 @@ router.get(
   }
 );
 
+// Getting accepted package
+router.get(
+  routes.indexByAcceptedRequest,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    try {
+      const packages = await Package.find({
+        $and: [{ traveler: req.userId }, { state: "Aceptado" }],
+      });
+      res.json(packages);
+    } catch (error) {
+      res.json({ message: error.message });
+    }
+  }
+);
+
 // Getting all packages by propietor
 router.get(
   routes.proprietor,
