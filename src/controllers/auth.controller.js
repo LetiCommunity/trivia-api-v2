@@ -117,7 +117,6 @@ router.post(routes.signin, async (req, res) => {
     res.cookie("token", token);
 
     return res.json({
-      user: userExisting,
       token: token,
     });
   } catch (error) {
