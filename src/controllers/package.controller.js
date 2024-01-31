@@ -82,7 +82,7 @@ router.get(
         $and: [{ traveler: req.userId }, { date: { $gt: currentDate } }],
       });
       if (travel) {
-        const packages = await Package.findOne({
+        const packages = await Package.find({
           $and: [{ receiverCity: travel.destination }, { state: "Publicado" }],
         });
         res.json(packages);
