@@ -20,7 +20,7 @@ router.get(
       const packages = await Package.find();
       res.json(packages);
     } catch (error) {
-      res.json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -34,7 +34,7 @@ router.get(
       const packages = await Package.find({ state: "Publicado" });
       res.json(packages);
     } catch (error) {
-      res.json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -50,7 +50,7 @@ router.get(
       });
       res.json(packages);
     } catch (error) {
-      res.json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -66,7 +66,7 @@ router.get(
       });
       res.json(packages);
     } catch (error) {
-      res.json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -87,10 +87,12 @@ router.get(
         });
         res.json(packages);
       } else {
-        return;
+        res
+          .status(404)
+          .json({ message: "You do not a travel to receive sugestiones" });
       }
     } catch (error) {
-      res.json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -106,7 +108,7 @@ router.get(
       });
       res.json(packages);
     } catch (error) {
-      res.json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -125,7 +127,7 @@ router.get(
       }
       res.json(packages);
     } catch (error) {
-      res.json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -145,7 +147,7 @@ router.get(
       }
       res.json(packages);
     } catch (error) {
-      res.json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
 );
@@ -160,7 +162,7 @@ router.get(routes.show, async (req, res) => {
     }
     res.json(package);
   } catch (error) {
-    res.json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -171,7 +173,7 @@ router.get(routes.image, async (req, res) => {
     const imagePath = path.join(__dirname, "../public/images/", image);
     res.sendFile(imagePath);
   } catch (error) {
-    console.error(error);
+    res.status(500).json({ message: error.message });
   }
 });
 

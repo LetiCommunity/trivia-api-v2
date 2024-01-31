@@ -14,5 +14,5 @@ module.exports = {
     /* Security configuration */
     
     JWT_SECRET: process.env.JWT_SECRET || "trivia_secret_key",
-    TOKEN_EXPIRATION: process.env.TOKEN_EXPIRATION || 86400,
+    TOKEN_EXPIRATION: process.env.TOKEN_EXPIRATION || "365d",
   };
