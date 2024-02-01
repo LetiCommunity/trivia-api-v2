@@ -83,7 +83,11 @@ router.get(
       });
       if (travel) {
         const packages = await Package.find({
-          $and: [{ receiverCity: travel.destination }, { state: "Publicado" }],
+          $and: [
+            { receiverCity: travel.destination },
+            { state: "Publicado" },
+            { proprietor: { $ne: req.userId } },
+          ],
         });
         res.json(packages);
       } else {
