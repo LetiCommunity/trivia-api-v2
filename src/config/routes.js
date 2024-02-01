@@ -12,6 +12,7 @@ module.exports = {
     signup: "/signup",
     signin: "/signin",
     signout: "/signout",
+    resetPassword: "/resetPassword",
 
     // Filter routes
     indexByDate: "/filterByDate",

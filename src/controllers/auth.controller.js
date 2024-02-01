@@ -124,6 +124,39 @@ router.post(routes.signin, async (req, res) => {
   }
 });
 
+router.patch(routes.resetPassword, async (req, res) => {
+  try {
+    const { phoneNumber, newPassword } = req.body;
+
+    if (!phoneNumber || !newPassword) {
+      return res.status(400).json({ message: "Complete all fields" });
+    }
+
+    const userExisting = await User.findOne({ phoneNumber: phoneNumber });
+
+    if (!userExisting) {
+      return res.status(409).json({ message: "User not found" });
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(newPassword, salt);
+    const passwordUpdated = {
+      password: hashedPassword,
+    };
+    await User.findByIdAndUpdate(userExisting._id, passwordUpdated)
+      .then(() => {
+        res.json({ message: "The password has been updated correctly" });
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "The password could not be updated " + error.message,
+        });
+      });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
 router.post(routes.signout, async (req, res) => {
   try {
     req.session = null;
