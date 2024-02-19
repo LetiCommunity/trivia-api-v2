@@ -72,7 +72,7 @@ router.post(routes.signin, async (req, res) => {
     //res.cookie("token", token);
 
     return res.json({
-      user: userExisting,
+      roles: userExisting.roles,
       token: token,
     });
   } catch (error) {
