@@ -1,8 +1,10 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model.js");
 const Role = require("../models/role.model.js");
+const Permission = require("../models/permission.model.js");
 
 const init = async () => {
+  //Roles
   const userRole = new Role({
     name: "USER_ROLE",
   });
@@ -15,7 +17,30 @@ const init = async () => {
     name: "SUPER_ADMIN_ROLE",
   });
 
+  //Permissions
+  const deliveryPermision = new Permission({
+    name: "DELIVERY_PERMISSION",
+  });
+
+  const shippingPermision = new Permission({
+    name: "SHIPPING_PERMISSION",
+  });
+
+  const receivingPermision = new Permission({
+    name: "RECEIVING_PERMISSION",
+  });
+
+  const completePermision = new Permission({
+    name: "COMPLETE_PERMISSION",
+  });
+
   const newRoles = [superAdminRole, adminRole, userRole];
+  const newPermissions = [
+    deliveryPermision,
+    shippingPermision,
+    receivingPermision,
+    completePermision,
+  ];
 
   for (i = 0; i < newRoles.length; i++) {
     const roleExisting = await Role.findOne({ name: newRoles[i].name });
@@ -32,7 +57,24 @@ const init = async () => {
     }
   }
 
-  const roles = await Role.find({}, {"_id": 1});
+  for (i = 0; i < newPermissions.length; i++) {
+    const permissionExisting = await Permission.findOne({
+      name: newPermissions[i].name,
+    });
+    if (!permissionExisting) {
+      await Permission.create({
+        name: newPermissions[i].name,
+      })
+        .then(() => {
+          console.log("Permission created");
+        })
+        .catch((error) => {
+          console.log("Error creating permission: " + error.message);
+        });
+    }
+  }
+
+  const roles = await Role.find({}, { _id: 1 });
   const userExisting = await User.findOne({ username: "admin" });
 
   if (userExisting) {

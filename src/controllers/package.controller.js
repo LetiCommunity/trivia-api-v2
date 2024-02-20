@@ -11,34 +11,6 @@ const router = express.Router();
 
 /* Package routes */
 
-// Getting all packages
-router.get(
-  routes.index,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    try {
-      const packages = await Package.find();
-      res.json(packages);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-);
-
-// Getting all packages whose state is published
-router.get(
-  routes.indexByState,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    try {
-      const packages = await Package.find({ state: "Publicado" });
-      res.json(packages);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-);
-
 // Getting all packages whose state is not published
 router.get(
   routes.indexIsNotPublished,
@@ -441,27 +413,6 @@ router.delete(
       .catch((error) => {
         res.status(500).json({
           message: "The package could not be calceled: " + error.message,
-        });
-      });
-  }
-);
-
-// Deleting a package
-router.delete(
-  routes.delete,
-  [authjwt.verifyToken, authjwt.isSuperAdmin],
-  async (req, res) => {
-    const { id } = req.params;
-    const package = await Package.findById(id);
-
-    await Package.deleteOne(package._id)
-      .then(() => {
-        res.json({ message: "The package has been deleted correctly" });
-      })
-      .catch((error) => {
-        console.log(error);
-        res.status(500).json({
-          message: "The package could not be performed: " + error.message,
         });
       });
   }

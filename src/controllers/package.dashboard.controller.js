@@ -31,7 +31,7 @@ router.get(
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const packages = await Package.find({ state: "Publicado" });
+      const packages = await Package.find({ state: "Aprobado" });
       res.json(packages);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -41,13 +41,11 @@ router.get(
 
 // Getting all packages whose state is not published
 router.get(
-  routes.indexIsNotPublished,
-  [authjwt.verifyToken, authjwt.isUser],
+  routes.indexByState,
+  [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const packages = await Package.find({
-        state: { $ne: "Publicado" },
-      });
+      const packages = await Package.find({ state: "Entregado" });
       res.json(packages);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -57,13 +55,11 @@ router.get(
 
 // Getting package send request
 router.get(
-  routes.indexByRequest,
-  [authjwt.verifyToken, authjwt.isUser],
+  routes.indexByState,
+  [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const packages = await Package.find({
-        $and: [{ traveler: req.userId }, { state: "Proceso" }],
-      });
+      const packages = await Package.find({ state: "Enviado" });
       res.json(packages);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -73,82 +69,11 @@ router.get(
 
 // Getting package by Match
 router.get(
-  routes.indexByMatch,
-  [authjwt.verifyToken, authjwt.isUser],
+  routes.indexByState,
+  [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const currentDate = new Date();
-      const travel = await Travel.findOne({
-        $and: [{ traveler: req.userId }, { date: { $gt: currentDate } }],
-      });
-      if (travel) {
-        const packages = await Package.find({
-          $and: [
-            { receiverCity: travel.destination },
-            { state: "Publicado" },
-            { proprietor: { $ne: req.userId } },
-          ],
-        });
-        res.json(packages);
-      } else {
-        res
-          .status(404)
-          .json({ message: "You do not a travel to receive sugestiones" });
-      }
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-);
-
-// Getting accepted package
-router.get(
-  routes.indexByAcceptedRequest,
-  [authjwt.verifyToken, authjwt.isUser],
-  async (req, res) => {
-    try {
-      const packages = await Package.find({
-        $and: [{ proprietor: req.userId }, { state: "Aprobado" }],
-      });
-      res.json(packages);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-);
-
-// Getting all packages by propietor
-router.get(
-  routes.proprietor,
-  [authjwt.verifyToken, authjwt.isUser],
-  async (req, res) => {
-    try {
-      const packages = await Package.find({
-        $and: [{ proprietor: req.userId }, { state: { $ne: "Cancelado" } }],
-      });
-      if (!packages) {
-        return res.status(404).json({ message: "Package not found" });
-      }
-      res.json(packages);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-);
-
-// Getting all packages by propietor and whose state is not Published
-router.get(
-  routes.proprietor,
-  [authjwt.verifyToken, authjwt.isUser],
-  async (req, res) => {
-    try {
-      const packages = await Package.find({
-        proprietor: req.userId,
-        state: "Proceso",
-      });
-      if (!packages) {
-        return res.status(404).json({ message: "Package not found" });
-      }
+      const packages = await Package.find({ state: "Completado" });
       res.json(packages);
     } catch (error) {
       res.status(500).json({ message: error.message });

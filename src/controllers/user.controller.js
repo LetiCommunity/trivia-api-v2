@@ -69,7 +69,6 @@ router.post(
       surname: surname,
       phoneNumber: phoneNumber,
       email: email,
-      username: username,
       username: lowerUsername,
       password: hashedPassword,
       roles: [roleExisting],
