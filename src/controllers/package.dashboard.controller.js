@@ -3,7 +3,6 @@ const path = require("path");
 const uuid = require("uuid");
 
 const Package = require("../models/package.model.js");
-const Travel = require("../models/travel.model.js");
 const { routes } = require("../config/routes.js");
 const authjwt = require("../middleware/authjwt.js");
 
@@ -25,13 +24,15 @@ router.get(
   }
 );
 
-// Getting all packages whose state is published
+// Getting all packages whose state is approved
 router.get(
-  routes.indexByState,
+  routes.packageDelivered,
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const packages = await Package.find({ state: "Aprobado" });
+      const packages = await Package.find({ state: "Aprobado" })
+        .populate("proprietor")
+        .exec();
       res.json(packages);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -39,13 +40,15 @@ router.get(
   }
 );
 
-// Getting all packages whose state is not published
+// Getting all packages whose state is delivered
 router.get(
-  routes.indexByState,
+  routes.packageShipped,
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const packages = await Package.find({ state: "Entregado" });
+      const packages = await Package.find({ state: "Entregado" })
+        .populate("traveler")
+        .exec();
       res.json(packages);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -53,13 +56,15 @@ router.get(
   }
 );
 
-// Getting package send request
+// Getting all packages whose state is shipped
 router.get(
-  routes.indexByState,
+  routes.packageReceived,
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const packages = await Package.find({ state: "Enviado" });
+      const packages = await Package.find({ state: "Enviado" })
+        .populate("traveler")
+        .exec();
       res.json(packages);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -67,9 +72,9 @@ router.get(
   }
 );
 
-// Getting package by Match
+// Getting all packages whose state is completed
 router.get(
-  routes.indexByState,
+  routes.packageCompleted,
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
@@ -109,7 +114,7 @@ router.get(routes.image, async (req, res) => {
 // Creating a package
 router.post(
   routes.create,
-  [authjwt.verifyToken, authjwt.isUser],
+  [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     const {
       description,
@@ -119,6 +124,7 @@ router.post(
       receiverCity,
       receiverStreet,
       receiverPhone,
+      proprietor,
     } = req.body;
     const { image } = req.files;
 
@@ -130,7 +136,8 @@ router.post(
       !receiverSurname ||
       !receiverCity ||
       !receiverStreet ||
-      !receiverPhone
+      !receiverPhone ||
+      !proprietor
     ) {
       return res.status(400).json({ message: "Complete all fields" });
     }
@@ -151,70 +158,8 @@ router.post(
       receiverStreet: receiverStreet,
       receiverPhone: receiverPhone,
       state: "Publicado",
-      proprietor: req.userId,
+      proprietor: proprietor,
       traveler: null,
-    });
-
-    await Package.create(newPackage)
-      .then(() => {
-        res.json({ message: "The package has been created correctly" });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          message: "The package could not be performed: " + error.message,
-        });
-      });
-  }
-);
-
-// Creating a package whit send request
-router.post(
-  routes.packageSendRequest,
-  [authjwt.verifyToken, authjwt.isUser],
-  async (req, res) => {
-    const {
-      description,
-      weight,
-      receiverName,
-      receiverSurname,
-      receiverCity,
-      receiverStreet,
-      receiverPhone,
-    } = req.body;
-    const { image } = req.files;
-    const { traveler } = req.params;
-    if (
-      !description ||
-      !weight ||
-      !image ||
-      !receiverName ||
-      !receiverSurname ||
-      !receiverCity ||
-      !receiverStreet ||
-      !receiverPhone ||
-      !traveler
-    ) {
-      return res.status(400).json({ message: "Complete all fields" });
-    }
-
-    let imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
-
-    image.mv(`./public/images/${imageFilter}`, (error) => {
-      if (error) return res.status(500).json({ message: error.message });
-    });
-
-    const newPackage = new Package({
-      description: description,
-      weight: weight,
-      image: imageFilter,
-      receiverName: receiverName,
-      receiverSurname: receiverSurname,
-      receiverCity: receiverCity,
-      receiverStreet: receiverStreet,
-      receiverPhone: receiverPhone,
-      state: "Proceso",
-      proprietor: req.userId,
-      traveler: traveler,
     });
 
     await Package.create(newPackage)
@@ -232,7 +177,7 @@ router.post(
 // Updating a package
 router.put(
   routes.update,
-  [authjwt.verifyToken, authjwt.isUser],
+  [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     const { id } = req.params;
     const {
@@ -282,14 +227,14 @@ router.put(
   }
 );
 
-// To confirm package send request
+// To confirm package delivered
 router.get(
-  routes.packageSendRequestConfirmation,
-  [authjwt.verifyToken, authjwt.isUser],
+  routes.confirmPackageDelivered,
+  [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     const { package } = req.params;
     const packageUpdated = {
-      state: "Aprobado",
+      state: "Entregado",
     };
 
     await Package.findByIdAndUpdate(package, packageUpdated)
@@ -304,15 +249,14 @@ router.get(
   }
 );
 
-// To confirm package send suggestion
+// To confirm package shipped
 router.get(
-  routes.packageSendSuggestionConfirmation,
-  [authjwt.verifyToken, authjwt.isUser],
+  routes.confirmPackageShipped,
+  [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     const { package } = req.params;
     const packageUpdated = {
-      state: "Aprobado",
-      traveler: req.userId,
+      state: "Enviado",
     };
 
     await Package.findByIdAndUpdate(package, packageUpdated)
@@ -327,23 +271,45 @@ router.get(
   }
 );
 
-// To Reject package send
+// To confirm package received
 router.get(
-  routes.packageSendRequestRejection,
-  [authjwt.verifyToken, authjwt.isUser],
+  routes.confirmPackageReceived,
+  [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     const { package } = req.params;
     const packageUpdated = {
-      state: "Publicado",
+      state: "Recibido",
     };
 
     await Package.findByIdAndUpdate(package, packageUpdated)
       .then(() => {
-        res.json({ message: "The package has been rejected" });
+        res.json({ message: "The package has been updated correctly" });
       })
       .catch((error) => {
         res.status(500).json({
-          message: "The package could not be rejected: " + error.message,
+          message: "The package could not be performed: " + error.message,
+        });
+      });
+  }
+);
+
+// To confirm package completed
+router.get(
+  routes.confirmPackageCompleted,
+  [authjwt.verifyToken, authjwt.isAdmin],
+  async (req, res) => {
+    const { package } = req.params;
+    const packageUpdated = {
+      state: "Completado",
+    };
+
+    await Package.findByIdAndUpdate(package, packageUpdated)
+      .then(() => {
+        res.json({ message: "The package has been updated correctly" });
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "The package could not be performed: " + error.message,
         });
       });
   }

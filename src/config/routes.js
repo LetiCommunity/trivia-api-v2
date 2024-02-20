@@ -22,13 +22,27 @@ module.exports = {
     indexByMatch: "/filterByMatch",
     indexByAcceptedRequest: "/filterByAcceptedRequest",
     indexIsNotPublished: "/filterIsNotPublished",
+
     packageSendSuggestionConfirmation: "/suggestions/confirmation/:package",
     packageSendRequest: "/requests/:traveler",
     packageSendRequestConfirmation: "/requests/confirmation/:package",
     packageSendRequestRejection: "/requests/rejection/:package",
     packageSendCancelation: "/cancelation/:package",
+
     travelPublishCancelation: "/cancelation/:travel",
+
     changeProfileImage: "/profile/image",
     changePassword: "/profile/password",
+
+    //Dashboard
+    packageDelivered: "/delivered",
+    packageShipped: "/shipped",
+    packageReceived: "/received",
+    packageCompleted: "/completed",
+
+    confirmPackageDelivered: "/delivered/:package",
+    confirmPackageShipped: "/shipped/:package",
+    confirmPackageReceived: "/received/:package",
+    confirmPackageCompleted: "/completed/:package",
   },
 };

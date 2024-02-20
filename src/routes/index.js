@@ -12,7 +12,7 @@ app.use("/profiles", require("../controllers/profile.controller.js"));
 //app.use("/roles", require("../controllers/role.controller.js"));
 app.use("/travels", require("../controllers/travel.controller.js"));
 app.use("/packages", require("../controllers/package.controller.js"));
-app.use("/packages/dashboard", require("../controllers/package.dashboard.controller.js"));
+app.use("/dashboard/packages", require("../controllers/package.dashboard.controller.js"));
 app.use("/locals", require("../controllers/local.controller.js"));
 app.use("/permissions", require("../controllers/permission.controller.js"));
 //app.use("/comments", require("../controllers/comment.controller.js"));
