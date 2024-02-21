@@ -2,7 +2,7 @@ module.exports = {
     /* Database configuration */
 
     MONGO_HOST: process.env.DB_HOST || "mongodb://127.0.0.1:27017/",
-    MONGO_DATABASE: process.env.DB_DATABASE || "triviadb",
+    MONGO_DATABASE: process.env.DB_DATABASE || "triviadbtest",
     MONGO_USERNAME: process.env.DB_USERNAME || "",
     MONGO_PASSWORD: process.env.DB_PASSWORD || "",
   
