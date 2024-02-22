@@ -2,9 +2,8 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
+const Employee = require("../models/employee.model");
 const User = require("../models/user.model");
-const Role = require("../models/role.model");
-const verifySignUp = require("../middleware/verifySignUp");
 const { routes } = require("../config/routes");
 const { JWT_SECRET, TOKEN_EXPIRATION } = require("../config/environment");
 
@@ -30,6 +29,12 @@ router.post(routes.signin, async (req, res) => {
       .populate("roles")
       .exec();
 
+    const employeeExisting = await Employee.findOne({
+      user: userExisting,
+    })
+      .populate("permissions")
+      .exec();
+
     // Check if the user is already
     if (!userExisting) {
       return res
@@ -38,9 +43,7 @@ router.post(routes.signin, async (req, res) => {
     }
 
     if (!userExisting.state) {
-      return res
-        .status(400)
-        .json({ message: "This account has been deleted" });
+      return res.status(400).json({ message: "This account has been deleted" });
     }
 
     // Check if the user password is correct
@@ -63,16 +66,23 @@ router.post(routes.signin, async (req, res) => {
       }
     );
 
-    let authorities = [];
-
-    for (let i = 0; i < userExisting.roles.length; i++) {
-      authorities.push(userExisting.roles[i].name);
+    // Check if the employee is already
+    if (!employeeExisting) {
+      if (userExisting.roles.some((role) => role.name === "SUPER_ADMIN_ROLE")) {
+        return res.json({
+          roles: userExisting.roles,
+          token: token,
+        });
+      } else {
+        return res
+          .status(400)
+          .json({ message: "Incorrect username or password" });
+      }
     }
-
-    //res.cookie("token", token);
 
     return res.json({
       roles: userExisting.roles,
+      permissions: employeeExisting.permissions,
       token: token,
     });
   } catch (error) {

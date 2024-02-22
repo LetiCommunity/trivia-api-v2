@@ -108,13 +108,11 @@ router.post(routes.signin, async (req, res) => {
       }
     );
 
-    let authorities = [];
-
-    for (let i = 0; i < userExisting.roles.length; i++) {
-      authorities.push(userExisting.roles[i].name);
-    }
-
-    res.cookie("token", token);
+    // let authorities = [];
+    // for (let i = 0; i < userExisting.roles.length; i++) {
+    //   authorities.push(userExisting.roles[i].name);
+    // }
+    // res.cookie("token", token);
 
     return res.json({
       token: token,
