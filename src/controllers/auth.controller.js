@@ -12,27 +12,38 @@ const router = express.Router();
 
 /* Login route */
 
-// Logup
+/**
+ * Signup route
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Object} - The response object with a message
+ */
 router.post(
   routes.signup,
   [verifySignUp.checkDuplicateUsername],
   async (req, res) => {
     try {
+      // Destructure request body
       const { name, surname, phoneNumber, email, username, password } =
         req.body;
 
+      // Check for required fields
       if (!name || !surname || !phoneNumber || !username || !password) {
         return res
           .status(400)
           .json({ message: "Complete the required fields" });
       }
 
+      // Lowercase the username
       const lowerUsername = username.toLowerCase();
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
+      // Generate salt and hash the password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
 
+      // Find user role
       const role = await Role.findOne({ name: "USER_ROLE" }, { _id: 1 });
 
+      // Create new user
       const newUser = new User({
         name: name,
         surname: surname,
@@ -44,123 +55,120 @@ router.post(
         state: true,
       });
 
-      await User.create(newUser)
-        .then(() => {
-          res.json({ message: "The user has been created correctly" });
-        })
-        .catch((error) => {
-          res.status(500).json({
-            message: "The user could not be performed: " + error.message,
-          });
-        });
+      // Save new user
+      await newUser.save();
+      res.json({ message: "The user has been created correctly" });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
   }
 );
 
-// Login
+/**
+ * Login route
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Object} - The response object with a token
+ */
 router.post(routes.signin, async (req, res) => {
   try {
+    // Destructure request body
     const { username, password } = req.body;
 
-    // Check if the fields have content
+    // Check for required fields
     if (!username || !password) {
       return res.status(400).json({ message: "Complete all fields" });
     }
 
-    // Change the username to lowercase and is looking for it in the authentication database
+    // Lowercase the username
     const lowerUsername = username.toLowerCase();
+    // Find user and populate roles
     const userExisting = await User.findOne({
       username: lowerUsername,
-    })
-      .populate("roles")
-      .exec();
+    }).populate("roles");
 
-    // Check if the user is already
+    // Check if user exists
     if (!userExisting) {
       return res
         .status(400)
         .json({ message: "Incorrect username or password" });
     }
 
+    // Check if user account is active
     if (!userExisting.state) {
       return res.status(400).json({ message: "This account has been deleted" });
     }
-
-    // Check if the user password is correct
-    if (!bcrypt.compareSync(password, userExisting.password)) {
+    //Compare passwords
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      userExisting.password
+    );
+    if (!isPasswordValid) {
       return res
         .status(400)
         .json({ message: "Incorrect username or password" });
     }
 
-    // Create the token
-    const token = jwt.sign(
-      {
-        id: userExisting._id,
-      },
-      JWT_SECRET,
-      {
-        algorithm: "HS256",
-        allowInsecureKeySizes: true,
-        expiresIn: TOKEN_EXPIRATION,
-      }
-    );
-
-    // let authorities = [];
-    // for (let i = 0; i < userExisting.roles.length; i++) {
-    //   authorities.push(userExisting.roles[i].name);
-    // }
-    // res.cookie("token", token);
-
-    return res.json({
-      token: token,
+    // Generate JWT token
+    const token = jwt.sign({ id: userExisting._id }, JWT_SECRET, {
+      algorithm: "HS256",
+      expiresIn: TOKEN_EXPIRATION,
     });
+    return res.json({ token });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 });
 
+/**
+ * Reset password route
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Object} - The response object with a message
+ */
 router.patch(routes.resetPassword, async (req, res) => {
   try {
+    // Destructure request body
     const { phoneNumber, newPassword } = req.body;
 
+    // Check for required fields
     if (!phoneNumber || !newPassword) {
       return res.status(400).json({ message: "Complete all fields" });
     }
 
-    const userExisting = await User.findOne({ phoneNumber: phoneNumber });
+    // Find user by phone number
+    const userExisting = await User.findOne({ phoneNumber });
 
+    // Check if user exists
     if (!userExisting) {
       return res.status(409).json({ message: "User not found" });
     }
 
-    const salt = bcrypt.genSaltSync(10);
-    const hashedPassword = bcrypt.hashSync(newPassword, salt);
-    const passwordUpdated = {
+    // Generate salt and hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    await User.findByIdAndUpdate(userExisting._id, {
       password: hashedPassword,
-    };
-    await User.findByIdAndUpdate(userExisting._id, passwordUpdated)
-      .then(() => {
-        res.json({ message: "The password has been updated correctly" });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          message: "The password could not be updated " + error.message,
-        });
-      });
+    });
+    res.json({ message: "The password has been updated correctly" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 });
 
+/**
+ * Sign out route
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Object} - The response object with a message
+ */
 router.post(routes.signout, async (req, res) => {
   try {
+    // Clear session
     req.session = null;
     return res.json({ message: "You've been signed out!" });
   } catch (error) {
-    this.next(error);
+    return res.status(500).json({ message: error.message });
   }
 });
 

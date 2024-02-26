@@ -8,47 +8,62 @@ const router = express.Router();
 
 /* User routes */
 
-// Getting all travels
+/**
+ * Get all travels
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {Array} - Array of travel objects
+ */
 router.get(
   routes.index,
   [authjwt.verifyToken, authjwt.isAdmin],
   async (req, res) => {
     try {
-      const travel = await Travel.find()
+      const travels = await Travel.find()
         .populate("traveler")
         .sort({ date: -1 })
-        .exec();
-      res.json(travel);
+        .lean(); // Use lean() for read-only operations
+      res.json(travels);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 );
 
-// Getting all next travels
+/**
+ * Get all next travels
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {Array} - Array of travel objects
+ */
 router.get(routes.indexByDate, async (req, res) => {
   try {
     const currentDate = new Date();
-    const travel = await Travel.find({
+    const travels = await Travel.find({
       date: { $gt: currentDate },
       state: true,
       availableWeight: { $gt: 0 },
     })
       .populate("traveler")
       .sort({ date: 1 })
-      .exec();
-    res.json(travel);
+      .lean(); // Use lean() for read-only operations
+    res.json(travels);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Getting all next travels by origin and destination
+/**
+ * Get all next travels by origin and destination
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {Array} - Array of travel objects
+ */
 router.get(routes.indexByCity, async (req, res) => {
   try {
-    const { origin, destination } = req.params;
+    const { origin, destination } = req.query; // Use req.query instead of req.params
     const currentDate = new Date();
-    const travel = await Travel.find({
+    const travels = await Travel.find({
       date: { $gt: currentDate },
       origin: origin,
       destination: destination,
@@ -57,30 +72,40 @@ router.get(routes.indexByCity, async (req, res) => {
     })
       .populate("traveler")
       .sort({ date: 1 })
-      .exec();
-    res.json(travel);
+      .lean(); // Use lean() for read-only operations
+    res.json(travels);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Getting all travels by proprietor
+/**
+ * Get all travels by proprietor
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {Array} - Array of travel objects
+ */
 router.get(
   routes.proprietor,
   [authjwt.verifyToken, authjwt.isUser],
   async (req, res) => {
     try {
-      const travel = await Travel.find({ traveler: req.userId, state: true })
+      const travels = await Travel.find({ traveler: req.userId, state: true })
         .sort({ date: -1 })
         .exec();
-      res.json(travel);
+      res.json(travels);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 );
 
-// Getting a travel by id
+/**
+ * Get a travel by id
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {Object} - The travel object
+ */
 router.get(routes.show, async (req, res) => {
   try {
     const { id } = req.params;
@@ -94,7 +119,13 @@ router.get(routes.show, async (req, res) => {
   }
 });
 
-// Creating a travel
+/**
+ * Create a travel
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {Object} - The result of the creation operation
+ */
+
 router.post(
   routes.create,
   [authjwt.verifyToken, authjwt.isUser],
@@ -136,42 +167,45 @@ router.post(
       return res.status(400).json({ message: "Please enter a correct date" });
     }
 
-    const travel = await Travel.findOne({
+    const existingTravel = await Travel.findOne({
       traveler: req.userId,
       date: { $gt: currentDate },
     }).exec();
 
-    if (travel) {
+    if (existingTravel) {
       return res.status(409).json({ message: "You have a current travel" });
     }
 
     const newTravel = new Travel({
-      origin: origin,
-      destination: destination,
-      date: date,
-      airport: airport,
-      terminal: terminal,
-      company: company,
-      billingTime: billingTime,
-      availableWeight: availableWeight,
+      origin,
+      destination,
+      date,
+      airport,
+      terminal,
+      company,
+      billingTime,
+      availableWeight,
       traveler: req.userId,
       state: true,
     });
 
-    await Travel.create(newTravel)
-      .then(() => {
-        res.json({ message: "The travel has been created correctly" });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          message: "The travel could not be performed: " + error.message,
-        });
-        console.error(error.message);
+    try {
+      await newTravel.save();
+      res.json({ message: "The travel has been created correctly" });
+    } catch (error) {
+      res.status(500).json({
+        message: "The travel could not be performed: " + error.message,
       });
+    }
   }
 );
 
-// Updating a travel
+/**
+ * Update a travel
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {Object} - The result of the update operation
+ */
 router.put(
   routes.update,
   [authjwt.verifyToken, authjwt.isUser],
@@ -201,30 +235,47 @@ router.put(
       return res.status(400).json({ message: "Complete all fields" });
     }
 
+    if (origin === destination) {
+      return res
+        .status(400)
+        .json({ message: "Origin and destination cannot be the same" });
+    }
+
+    const convertedDate = new Date(date);
+    const currentDate = new Date();
+
+    if (convertedDate < currentDate) {
+      return res.status(400).json({ message: "Please enter a correct date" });
+    }
+
     const travelUpdated = {
-      origin: origin,
-      destination: destination,
-      date: date,
-      airport: airport,
-      terminal: terminal,
-      company: company,
-      billingTime: billingTime,
-      availableWeight: availableWeight,
+      origin,
+      destination,
+      date,
+      airport,
+      terminal,
+      company,
+      billingTime,
+      availableWeight,
     };
 
-    await Travel.findByIdAndUpdate(id, travelUpdated)
-      .then(() => {
-        res.json({ message: "The travel has been updated correctly" });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          message: "The travel could not be performed: " + error.message,
-        });
+    try {
+      await Travel.findByIdAndUpdate(id, travelUpdated);
+      res.json({ message: "The travel has been updated correctly" });
+    } catch (error) {
+      res.status(500).json({
+        message: "The travel could not be performed: " + error.message,
       });
+    }
   }
 );
 
-// Canceling travel
+/**
+ * Cancel a travel
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {Object} - The result of the cancelation operation
+ */
 router.delete(
   routes.travelPublishCancelation,
   [authjwt.verifyToken, authjwt.isUser],
@@ -233,36 +284,36 @@ router.delete(
     const travelUpdated = {
       state: false,
     };
-    await Travel.findByIdAndUpdate(travel, travelUpdated)
-      .then(() => {
-        res.json({ message: "The travel has been canceled correctly" });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          message: "The travel could not be canceled: " + error.message,
-        });
+    try {
+      await Travel.findByIdAndUpdate(travel, travelUpdated);
+      res.json({ message: "The travel has been canceled correctly" });
+    } catch (error) {
+      res.status(500).json({
+        message: "The travel could not be canceled: " + error.message,
       });
+    }
   }
 );
 
-// Deleting a travel
+/**
+ * Delete a travel
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {Object} - The result of the deletion operation
+ */
 router.delete(
   routes.delete,
   [authjwt.verifyToken, authjwt.isSuperAdmin],
   async (req, res) => {
     const { id } = req.params;
-    const travel = await Travel.findById(id);
-
-    await Travel.deleteOne(travel._id)
-      .then(() => {
-        res.json({ message: "The travel has been deleted correctly" });
-      })
-      .catch((error) => {
-        console.log(error);
-        res.status(500).json({
-          message: "The travel could not be performed: " + error.message,
-        });
+    try {
+      await Travel.findByIdAndDelete(id);
+      res.json({ message: "The travel has been deleted correctly" });
+    } catch (error) {
+      res.status(500).json({
+        message: "The travel could not be performed: " + error.message,
       });
+    }
   }
 );
 

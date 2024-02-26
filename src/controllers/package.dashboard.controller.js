@@ -1,96 +1,109 @@
-const express = require("express");
-const path = require("path");
-const uuid = require("uuid");
+const express = require("express"); // Import the express module
+const path = require("path"); // Import the path module
+const uuid = require("uuid"); // Import the uuid module for generating unique identifiers
 
-const Package = require("../models/package.model.js");
-const { routes } = require("../config/routes.js");
-const authjwt = require("../middleware/authjwt.js");
+const Package = require("../models/package.model.js"); // Import the Package model
+const { routes } = require("../config/routes.js"); // Import the routes configuration
+const authjwt = require("../middleware/authjwt.js"); // Import the authentication middleware
 
-const router = express.Router();
+const router = express.Router(); // Create a new router using express
 
-/* Package routes */
+/**
+ * Middleware functions for authentication and authorization
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ * @param {function} next - The next middleware function
+ */
+const commonMiddleware = [authjwt.verifyToken, authjwt.isAdmin]; // Define common middleware functions for authentication and authorization
 
-// Getting all packages
-router.get(
-  routes.index,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    try {
-      const packages = await Package.find();
-      res.json(packages);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
+/**
+ * Retrieve all packages
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+router.use(commonMiddleware, async (req, res) => {
+  try {
+    const packages = await Package.find()
+      .populate("proprietor")
+      .populate("traveler")
+      .exec();
+    res.json(packages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-);
+});
 
-// Getting all packages whose state is approved
-router.get(
-  routes.packageDelivered,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    try {
-      const packages = await Package.find({ state: "Aprobado" })
-        .populate("proprietor")
-        .exec();
-      res.json(packages);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
+/**
+ * Retrieve all packages with state "Aprobado"
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+router.get(routes.packageDelivered, commonMiddleware, async (req, res) => {
+  try {
+    const packages = await Package.find({ state: "Aprobado" })
+      .populate("proprietor")
+      .exec();
+    res.json(packages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-);
+});
 
-// Getting all packages whose state is delivered
-router.get(
-  routes.packageShipped,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    try {
-      const packages = await Package.find({ state: "Entregado" })
-        .populate("traveler")
-        .exec();
-      res.json(packages);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
+/**
+ * Retrieve all packages with state "Entregado"
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+router.get(routes.packageShipped, commonMiddleware, async (req, res) => {
+  try {
+    const packages = await Package.find({ state: "Entregado" })
+      .populate("traveler")
+      .exec();
+    res.json(packages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-);
+});
 
-// Getting all packages whose state is shipped
-router.get(
-  routes.packageReceived,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    try {
-      const packages = await Package.find({ state: "Enviado" })
-        .populate("traveler")
-        .exec();
-      res.json(packages);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
+/**
+ * Retrieve all packages with state "Enviado"
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+router.get(routes.packageReceived, commonMiddleware, async (req, res) => {
+  try {
+    const packages = await Package.find({ state: "Enviado" })
+      .populate("traveler")
+      .exec();
+    res.json(packages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-);
+});
 
-// Getting all packages whose state is completed
-router.get(
-  routes.packageCompleted,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    try {
-      const packages = await Package.find({ state: "Completado" });
-      res.json(packages);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
+/**
+ * Retrieve all packages with state "Completado"
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+router.get(routes.packageCompleted, commonMiddleware, async (req, res) => {
+  try {
+    const packages = await Package.find({ state: "Completado" });
+    res.json(packages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-);
+});
 
-// Getting a package by id
+/**
+ * Retrieve a package by id
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
 router.get(routes.show, async (req, res) => {
   try {
     const { id } = req.params;
-    const package = await Package.findById(id);
+    const package = await Package.findById(id).lean();
     if (!package) {
       return res.status(404).json({ message: "Package not found" });
     }
@@ -100,7 +113,11 @@ router.get(routes.show, async (req, res) => {
   }
 });
 
-// Getting a package image
+/**
+ * Retrieve a package image
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
 router.get(routes.image, async (req, res) => {
   try {
     const { image } = req.params;
@@ -111,126 +128,130 @@ router.get(routes.image, async (req, res) => {
   }
 });
 
-// Creating a package
-router.post(
-  routes.create,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    const {
-      description,
-      weight,
-      receiverName,
-      receiverSurname,
-      receiverCity,
-      receiverStreet,
-      receiverPhone,
-      proprietor,
-    } = req.body;
-    const { image } = req.files;
+/**
+ * Create a new package
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+router.post(routes.create, commonMiddleware, async (req, res) => {
+  const {
+    description,
+    weight,
+    receiverName,
+    receiverSurname,
+    receiverCity,
+    receiverStreet,
+    receiverPhone,
+    proprietor,
+  } = req.body;
+  const { image } = req.files;
 
-    if (
-      !description ||
-      !weight ||
-      !image ||
-      !receiverName ||
-      !receiverSurname ||
-      !receiverCity ||
-      !receiverStreet ||
-      !receiverPhone ||
-      !proprietor
-    ) {
-      return res.status(400).json({ message: "Complete all fields" });
-    }
-
-    let imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
-
-    image.mv(`./public/images/${imageFilter}`, (error) => {
-      if (error) return res.status(500).json({ message: error.message });
-    });
-
-    const newPackage = new Package({
-      description: description,
-      weight: weight,
-      image: imageFilter,
-      receiverName: receiverName,
-      receiverSurname: receiverSurname,
-      receiverCity: receiverCity,
-      receiverStreet: receiverStreet,
-      receiverPhone: receiverPhone,
-      state: "Publicado",
-      proprietor: proprietor,
-      traveler: null,
-    });
-
-    await Package.create(newPackage)
-      .then(() => {
-        res.json({ message: "The package has been created correctly" });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          message: "The package could not be performed: " + error.message,
-        });
-      });
+  if (
+    !description ||
+    !weight ||
+    !image ||
+    !receiverName ||
+    !receiverSurname ||
+    !receiverCity ||
+    !receiverStreet ||
+    !receiverPhone ||
+    !proprietor
+  ) {
+    return res.status(400).json({ message: "Complete all fields" });
   }
-);
 
-// Updating a package
-router.put(
-  routes.update,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    const { id } = req.params;
-    const {
-      description,
-      weight,
-      receiverName,
-      receiverSurname,
-      receiverCity,
-      receiverStreet,
-      receiverPhone,
-    } = req.body;
-    const { image } = req.files;
+  let imageFilter = uuid.v4() + image.name.replace(/ /g, "").toLowerCase();
 
-    if (
-      !description ||
-      !weight ||
-      !image ||
-      !receiverName ||
-      !receiverSurname ||
-      !receiverCity ||
-      !receiverStreet ||
-      !receiverPhone
-    ) {
-      return res.status(400).json({ message: "Complete all fields" });
-    }
+  image.mv(`./public/images/${imageFilter}`, (error) => {
+    if (error) return res.status(500).json({ message: error.message });
+  });
 
-    const packageUpdated = {
-      description: description,
-      weight: weight,
-      image: image,
-      receiverName: receiverName,
-      receiverSurname: receiverSurname,
-      receiverCity: receiverCity,
-      receiverStreet: receiverStreet,
-      receiverPhone: receiverPhone,
-    };
+  const newPackage = new Package({
+    description: description,
+    weight: weight,
+    image: imageFilter,
+    receiverName: receiverName,
+    receiverSurname: receiverSurname,
+    receiverCity: receiverCity,
+    receiverStreet: receiverStreet,
+    receiverPhone: receiverPhone,
+    state: "Publicado",
+    proprietor: proprietor,
+    traveler: null,
+  });
 
-    await Package.findByIdAndUpdate(id, packageUpdated)
-      .then(() => {
-        res.json({ message: "The package has been updated correctly" });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          message: "The package could not be performed: " + error.message,
-        });
+  await Package.create(newPackage)
+    .then(() => {
+      res.json({ message: "The package has been created correctly" });
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: "The package could not be performed: " + error.message,
       });
-  }
-);
+    });
+});
 
-// To confirm package delivered
+/**
+ * Update an existing package
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+router.put(routes.update, commonMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const {
+    description,
+    weight,
+    receiverName,
+    receiverSurname,
+    receiverCity,
+    receiverStreet,
+    receiverPhone,
+  } = req.body;
+  const { image } = req.files;
+
+  if (
+    !description ||
+    !weight ||
+    !image ||
+    !receiverName ||
+    !receiverSurname ||
+    !receiverCity ||
+    !receiverStreet ||
+    !receiverPhone
+  ) {
+    return res.status(400).json({ message: "Complete all fields" });
+  }
+
+  const packageUpdated = {
+    description: description,
+    weight: weight,
+    image: image,
+    receiverName: receiverName,
+    receiverSurname: receiverSurname,
+    receiverCity: receiverCity,
+    receiverStreet: receiverStreet,
+    receiverPhone: receiverPhone,
+  };
+
+  await Package.findByIdAndUpdate(id, packageUpdated)
+    .then(() => {
+      res.json({ message: "The package has been updated correctly" });
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: "The package could not be performed: " + error.message,
+      });
+    });
+});
+
+/**
+ * Confirm package delivery
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
 router.get(
   routes.confirmPackageDelivered,
-  [authjwt.verifyToken, authjwt.isAdmin],
+  commonMiddleware,
   async (req, res) => {
     const { package } = req.params;
     const packageUpdated = {
@@ -249,32 +270,37 @@ router.get(
   }
 );
 
-// To confirm package shipped
-router.get(
-  routes.confirmPackageShipped,
-  [authjwt.verifyToken, authjwt.isAdmin],
-  async (req, res) => {
-    const { package } = req.params;
-    const packageUpdated = {
-      state: "Enviado",
-    };
+/**
+ * Confirm package shipment
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+router.get(routes.confirmPackageShipped, commonMiddleware, async (req, res) => {
+  const { package } = req.params;
+  const packageUpdated = {
+    state: "Enviado",
+  };
 
-    await Package.findByIdAndUpdate(package, packageUpdated)
-      .then(() => {
-        res.json({ message: "The package has been updated correctly" });
-      })
-      .catch((error) => {
-        res.status(500).json({
-          message: "The package could not be performed: " + error.message,
-        });
+  await Package.findByIdAndUpdate(package, packageUpdated)
+    .then(() => {
+      res.json({ message: "The package has been updated correctly" });
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: "The package could not be performed: " + error.message,
       });
-  }
-);
+    });
+});
 
-// To confirm package received
+/**
+ * Confirm package receipt
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+
 router.get(
   routes.confirmPackageReceived,
-  [authjwt.verifyToken, authjwt.isAdmin],
+  commonMiddleware,
   async (req, res) => {
     const { package } = req.params;
     const packageUpdated = {
@@ -293,10 +319,15 @@ router.get(
   }
 );
 
-// To confirm package completed
+/**
+ * Confirm package receipt
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+
 router.get(
   routes.confirmPackageCompleted,
-  [authjwt.verifyToken, authjwt.isAdmin],
+  commonMiddleware,
   async (req, res) => {
     const { package } = req.params;
     const packageUpdated = {
@@ -315,10 +346,14 @@ router.get(
   }
 );
 
-// To cancel package send
+/**
+ * Cancel package shipment
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
 router.delete(
   routes.packageSendCancelation,
-  [authjwt.verifyToken, authjwt.isUser],
+  commonMiddleware,
   async (req, res) => {
     const { package } = req.params;
     const packageUpdated = {
@@ -327,35 +362,35 @@ router.delete(
 
     await Package.findByIdAndUpdate(package, packageUpdated)
       .then(() => {
-        res.json({ message: "The package has been calceled correctly" });
+        res.json({ message: "The package has been cancelled correctly" });
       })
       .catch((error) => {
         res.status(500).json({
-          message: "The package could not be calceled: " + error.message,
+          message: "The package could not be cancelled: " + error.message,
         });
       });
   }
 );
 
-// Deleting a package
-router.delete(
-  routes.delete,
-  [authjwt.verifyToken, authjwt.isSuperAdmin],
-  async (req, res) => {
-    const { id } = req.params;
-    const package = await Package.findById(id);
+/**
+ * Delete a package
+ * @param {object} req - The request object
+ * @param {object} res - The response object
+ */
+router.delete(routes.delete, commonMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const package = await Package.findById(id);
 
-    await Package.deleteOne(package._id)
-      .then(() => {
-        res.json({ message: "The package has been deleted correctly" });
-      })
-      .catch((error) => {
-        console.log(error);
-        res.status(500).json({
-          message: "The package could not be performed: " + error.message,
-        });
+  await Package.deleteOne(package._id)
+    .then(() => {
+      res.json({ message: "The package has been deleted correctly" });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({
+        message: "The package could not be performed: " + error.message,
       });
-  }
-);
+    });
+});
 
 module.exports = router;

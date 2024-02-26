@@ -1,20 +1,35 @@
+// Import the express module
 const express = require("express");
+
+// Create an instance of the express application
 const app = express();
 
-app.use(
-  "/auth/dashboard",
-  require("../controllers/auth.dashboard.controller.js")
-);
-app.use("/auth", require("../controllers/auth.controller.js"));
-app.use("/employees", require("../controllers/employee.controller.js"));
-app.use("/users", require("../controllers/user.controller.js"));
-app.use("/profiles", require("../controllers/profile.controller.js"));
-//app.use("/roles", require("../controllers/role.controller.js"));
-app.use("/travels", require("../controllers/travel.controller.js"));
-app.use("/packages", require("../controllers/package.controller.js"));
-app.use("/dashboard/packages", require("../controllers/package.dashboard.controller.js"));
-app.use("/locals", require("../controllers/local.controller.js"));
-app.use("/permissions", require("../controllers/permission.controller.js"));
-//app.use("/comments", require("../controllers/comment.controller.js"));
+// List of controllers
+const controllers = [
+  "auth.dashboard.controller.js",
+  "auth.controller.js",
+  "employee.controller.js",
+  "user.controller.js",
+  "profile.controller.js",
+  //"role.controller.js",
+  "travel.controller.js",
+  "package.controller.js",
+  "package.dashboard.controller.js",
+  "local.controller.js",
+  "permission.controller.js",
+  //"comment.controller.js"
+];
 
+/**
+ * Iterate through the controllers array
+ * @param {string} controller - The name of the controller file
+ */
+controllers.forEach((controller) => {
+  // Extract the route from the controller filename
+  const route = "/" + controller.split(".")[0];
+  // Use the route and require the corresponding controller file
+  app.use(route, require(`../controllers/${controller}`));
+});
+
+// Export the express application
 module.exports = app;

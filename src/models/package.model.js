@@ -1,27 +1,97 @@
+// Import the necessary modules
 const mongoose = require("mongoose");
-const { Schema } = mongoose;
+const { Schema, model } = mongoose;
 
-const PackageSchema = new Schema({
-  description: { type: String, required: true },
-  weight: { type: Number, required: true },
-  image: { type: String, required: true },
-  receiverName: { type: String, required: true },
-  receiverSurname: { type: String, required: true },
-  receiverCity: { type: String, required: true },
-  receiverStreet: { type: String, required: true },
-  receiverPhone: { type: String, required: true },
-  state: { type: String, required: true },
-  proprietor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
+// Define the package schema
+const PackageSchema = new Schema(
+  {
+    /**
+     * Description of the package
+     * @type {String}
+     * @required
+     */
+    description: { type: String, required: true },
+
+    /**
+     * Weight of the package
+     * @type {Number}
+     * @required
+     */
+    weight: { type: Number, required: true },
+
+    /**
+     * Image URL of the package
+     * @type {String}
+     * @required
+     */
+    image: { type: String, required: true },
+
+    /**
+     * Name of the package receiver
+     * @type {String}
+     * @required
+     */
+    receiverName: { type: String, required: true },
+
+    /**
+     * Surname of the package receiver
+     * @type {String}
+     * @required
+     */
+    receiverSurname: { type: String, required: true },
+
+    /**
+     * City of the package receiver
+     * @type {String}
+     * @required
+     */
+    receiverCity: { type: String, required: true },
+
+    /**
+     * Street address of the package receiver
+     * @type {String}
+     * @required
+     */
+    receiverStreet: { type: String, required: true },
+
+    /**
+     * Phone number of the package receiver
+     * @type {String}
+     * @required
+     */
+    receiverPhone: { type: String, required: true },
+
+    /**
+     * State of the package
+     * @type {String}
+     * @required
+     */
+    state: { type: String, required: true },
+
+    /**
+     * Proprietor of the package
+     * @type {Schema.Types.ObjectId}
+     * @ref {User}
+     * @required
+     */
+    proprietor: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    /**
+     * Traveler carrying the package
+     * @type {Schema.Types.ObjectId}
+     * @ref {User}
+     */
+    traveler: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
-  traveler: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-});
+  { timestamps: true }
+);
 
-PackageSchema.set("timestamps", true);
-
-module.exports = mongoose.model("Package", PackageSchema);
+// Create and export the Package model
+module.exports = model("Package", PackageSchema);

@@ -1,89 +1,63 @@
+// Importing required modules
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model.js");
 const Role = require("../models/role.model.js");
 const Permission = require("../models/permission.model.js");
 
+/**
+ * Initializes roles, permissions, and a default admin user
+ * @returns {Promise<void>}
+ */
 const init = async () => {
-  //Roles
-  const userRole = new Role({
-    name: "USER_ROLE",
-  });
-
-  const adminRole = new Role({
-    name: "ADMIN_ROLE",
-  });
-
-  const superAdminRole = new Role({
-    name: "SUPER_ADMIN_ROLE",
-  });
-
-  //Permissions
-  const deliveryPermision = new Permission({
-    name: "DELIVERY_PERMISSION",
-  });
-
-  const shippingPermision = new Permission({
-    name: "SHIPPING_PERMISSION",
-  });
-
-  const receivingPermision = new Permission({
-    name: "RECEIVING_PERMISSION",
-  });
-
-  const completePermision = new Permission({
-    name: "COMPLETE_PERMISSION",
-  });
-
-  const newRoles = [superAdminRole, adminRole, userRole];
-  const newPermissions = [
-    deliveryPermision,
-    shippingPermision,
-    receivingPermision,
-    completePermision,
+  // Creating role instances
+  const rolesData = [
+    { name: "USER_ROLE" },
+    { name: "ADMIN_ROLE" },
+    { name: "SUPER_ADMIN_ROLE" },
   ];
 
-  for (i = 0; i < newRoles.length; i++) {
-    const roleExisting = await Role.findOne({ name: newRoles[i].name });
-    if (!roleExisting) {
-      await Role.create({
-        name: newRoles[i].name,
-      })
-        .then(() => {
-          console.log("Role created");
-        })
-        .catch((error) => {
-          console.log("Error creating role: " + error.message);
-        });
-    }
-  }
+  // Creating permission instances
+  const permissionsData = [
+    { name: "DELIVERY_PERMISSION" },
+    { name: "SHIPPING_PERMISSION" },
+    { name: "RECEIVING_PERMISSION" },
+    { name: "COMPLETE_PERMISSION" },
+  ];
 
-  for (i = 0; i < newPermissions.length; i++) {
-    const permissionExisting = await Permission.findOne({
-      name: newPermissions[i].name,
-    });
-    if (!permissionExisting) {
-      await Permission.create({
-        name: newPermissions[i].name,
-      })
-        .then(() => {
-          console.log("Permission created");
-        })
-        .catch((error) => {
-          console.log("Error creating permission: " + error.message);
-        });
+  // Creating new roles and permissions if they don't exist
+  const createIfNotExists = async (Model, data) => {
+    for (const item of data) {
+      const existing = await Model.findOne({ name: item.name });
+      if (!existing) {
+        try {
+          await Model.create({ name: item.name });
+          console.log(`${Model.modelName} created`);
+        } catch (error) {
+          console.log(`Error creating ${Model.modelName}: ${error.message}`);
+        }
+      }
     }
-  }
+  };
 
+  await createIfNotExists(Role, rolesData);
+  await createIfNotExists(Permission, permissionsData);
+
+  // Finding all roles
   const roles = await Role.find({}, { _id: 1 });
+
+  // Checking if the default admin user already exists
   const userExisting = await User.findOne({ username: "admin" });
 
+  // If the default admin user exists, return from the function
   if (userExisting) {
     return;
   }
 
+  // Generating a salt and hashing the default admin user's password
   const salt = bcrypt.genSaltSync(10);
   const hashedPassword = bcrypt.hashSync("admin", salt);
 
+  // Creating a new admin user instance
   const admin = new User({
     name: "Crescencio Esono",
     surname: "NVE ANDEME",
@@ -96,13 +70,14 @@ const init = async () => {
     state: true,
   });
 
-  await User.create(admin)
-    .then(() => {
-      console.log("User admin created");
-    })
-    .catch((error) => {
-      console.log("Error creating user admin: " + error);
-    });
+  // Creating the default admin user
+  try {
+    await User.create(admin);
+    console.log("User admin created");
+  } catch (error) {
+    console.log("Error creating user admin: " + error);
+  }
 };
 
+// Exporting the init function
 module.exports = init;

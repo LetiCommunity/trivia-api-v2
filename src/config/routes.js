@@ -1,48 +1,63 @@
 module.exports = {
   routes: {
-    // Main routes
-    index: "/",
-    proprietor: "/proprietor",
-    profile: "/profile",
-    show: "/:id",
-    image: "/image/:image",
-    create: "/",
-    update: "/:id",
-    delete: "/:id",
-    signup: "/signup",
-    signin: "/signin",
-    signout: "/signout",
-    resetPassword: "/resetPassword",
+    /**
+     * Main routes
+    */
+    index: "/", // Get the main index route
+    proprietor: "/proprietor", // Get the proprietor route
+    profile: "/profile", // Get the profile route
+    show: "/:id", // Get the route for a specific ID
+    image: "/image/:image", // Get the route for a specific image
+    create: "/", // Create a new route
+    update: "/:id", // Update the route for a specific ID
+    delete: "/:id", // Delete the route for a specific ID
+    signup: "/signup", // Get the signup route
+    signin: "/signin", // Get the signin route
+    signout: "/signout", // Get the signout route
+    resetPassword: "/resetPassword", // Get the reset password route
 
-    // Filter routes
-    indexByDate: "/filterByDate",
-    indexByCity: "/filterByCity/:origin/:destination",
-    indexByState: "/filterByState",
-    indexByRequest: "/filterByRequest",
-    indexByMatch: "/filterByMatch",
-    indexByAcceptedRequest: "/filterByAcceptedRequest",
-    indexIsNotPublished: "/filterIsNotPublished",
+    /**
+     * Filter routes
+    */
+    indexByDate: "/filterByDate", // Get the route for filtering by date
+    indexByCity: "/filterByCity/:origin/:destination", // Get the route for filtering by city
+    indexByState: "/filterByState", // Get the route for filtering by state
+    indexByRequest: "/filterByRequest", // Get the route for filtering by request
+    indexByMatch: "/filterByMatch", // Get the route for filtering by match
+    indexByAcceptedRequest: "/filterByAcceptedRequest", // Get the route for filtering by accepted request
+    indexIsNotPublished: "/filterIsNotPublished", // Get the route for filtering by unpublished items
 
-    packageSendSuggestionConfirmation: "/suggestions/confirmation/:package",
-    packageSendRequest: "/requests/:traveler",
-    packageSendRequestConfirmation: "/requests/confirmation/:package",
-    packageSendRequestRejection: "/requests/rejection/:package",
-    packageSendCancelation: "/cancelation/:package",
+    /**
+     * Package routes
+     */
+    packageSendSuggestionConfirmation: "/suggestions/confirmation/:package", // Get the route for sending suggestion confirmation
+    packageSendRequest: "/requests/:traveler", // Get the route for sending a package request
+    packageSendRequestConfirmation: "/requests/confirmation/:package", // Get the route for sending package request confirmation
+    packageSendRequestRejection: "/requests/rejection/:package", // Get the route for sending package request rejection
+    packageSendCancelation: "/cancelation/:package", // Get the route for sending package cancellation
 
-    travelPublishCancelation: "/cancelation/:travel",
+    /**
+     * Travel routes
+     */
+    travelPublishCancelation: "/cancelation/:travel", // Get the route for publishing travel cancellation
 
-    changeProfileImage: "/profile/image",
-    changePassword: "/profile/password",
+    /**
+     * Profile routes
+     */
+    changeProfileImage: "/profile/image", // Get the route for changing profile image
+    changePassword: "/profile/password", // Get the route for changing password
 
-    //Dashboard
-    packageDelivered: "/delivered",
-    packageShipped: "/shipped",
-    packageReceived: "/received",
-    packageCompleted: "/completed",
+    /**
+     * Dashboard routes
+     */
+    packageDelivered: "/delivered", // Get the route for delivered packages
+    packageShipped: "/shipped", // Get the route for shipped packages
+    packageReceived: "/received", // Get the route for received packages
+    packageCompleted: "/completed", // Get the route for completed packages
 
-    confirmPackageDelivered: "/delivered/:package",
-    confirmPackageShipped: "/shipped/:package",
-    confirmPackageReceived: "/received/:package",
-    confirmPackageCompleted: "/completed/:package",
+    confirmPackageDelivered: "/delivered/:package", // Get the route for confirming package delivery
+    confirmPackageShipped: "/shipped/:package", // Get the route for confirming package shipment
+    confirmPackageReceived: "/received/:package", // Get the route for confirming package reception
+    confirmPackageCompleted: "/completed/:package", // Get the route for confirming package completion
   },
 };
