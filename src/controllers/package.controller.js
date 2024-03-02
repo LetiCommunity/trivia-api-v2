@@ -35,6 +35,132 @@ router.get(
 );
 
 /**
+ * Getting package send request
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Array} - Array of packages
+ */
+router.get(
+  routes.indexByRequest,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    try {
+      const packages = await Package.find({
+        $and: [{ traveler: req.userId }, { state: "Proceso" }],
+      });
+      res.json(packages);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+/**
+ * Getting package by Match
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Array} - Array of packages
+ */
+router.get(
+  routes.indexByMatch,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    try {
+      const currentDate = new Date();
+      const travel = await Travel.findOne({
+        $and: [{ traveler: req.userId }, { date: { $gt: currentDate } }],
+      });
+      if (travel) {
+        const packages = await Package.find({
+          $and: [
+            { receiverCity: travel.destination },
+            { state: "Publicado" },
+            { proprietor: { $ne: req.userId } },
+          ],
+        });
+        res.json(packages);
+      } else {
+        res
+          .status(404)
+          .json({ message: "You do not a travel to receive sugestiones" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+/**
+ * Getting accepted package
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Array} - Array of packages
+ */
+router.get(
+  routes.indexByAcceptedRequest,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    try {
+      const packages = await Package.find({
+        $and: [{ proprietor: req.userId }, { state: "Aprobado" }],
+      });
+      res.json(packages);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+/**
+ * Getting all packages by propietor
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Array} - Array of packages
+ */
+router.get(
+  routes.proprietor,
+  [authjwt.verifyToken, authjwt.isUser],
+  async (req, res) => {
+    try {
+      const packages = await Package.find({
+        $and: [{ proprietor: req.userId }, { state: { $ne: "Cancelado" } }],
+      });
+      if (!packages) {
+        return res.status(404).json({ message: "Package not found" });
+      }
+      res.json(packages);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+/**
+ * Getting all packages by propietor and whose state is not Published
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Array} - Array of packages
+ */
+// router.get(
+//   routes.proprietor,
+//   [authjwt.verifyToken, authjwt.isUser],
+//   async (req, res) => {
+//     try {
+//       const packages = await Package.find({
+//         proprietor: req.userId,
+//         state: "Proceso",
+//       });
+//       if (!packages) {
+//         return res.status(404).json({ message: "Package not found" });
+//       }
+//       res.json(packages);
+//     } catch (error) {
+//       res.status(500).json({ message: error.message });
+//     }
+//   }
+// );
+
+/**
  * Get a package by id
  * @param {Object} req - The request object
  * @param {Object} res - The response object
