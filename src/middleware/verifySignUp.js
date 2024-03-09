@@ -16,6 +16,22 @@ checkDuplicateUsername = async (req, res, next) => {
   }
 };
 
+checkDuplicatePhoneNumber = async (req, res, next) => {
+  try {
+    const phoneNumber = req.body.phoneNumber;
+    const userExisting = await User.findOne({ phoneNumber: phoneNumber });
+
+    if (userExisting) {
+      return res
+        .status(409)
+        .json({ message: "This phoneNumber already exists" });
+    }
+    next();
+  } catch (error) {
+    return res.status(500).json({ message: "Unable to validate Username!" });
+  }
+};
+
 checkRolesExisted = (req, res, next) => {
   if (req.body.roles) {
     for (let i = 0; i < req.body.role.length; i++) {}
@@ -24,6 +40,7 @@ checkRolesExisted = (req, res, next) => {
 
 const verifySignUp = {
   checkDuplicateUsername,
+  checkDuplicatePhoneNumber,
   checkRolesExisted,
 };
 

@@ -15,7 +15,7 @@ const router = express.Router();
 // Logup
 router.post(
   routes.signup,
-  [verifySignUp.checkDuplicateUsername],
+  [verifySignUp.checkDuplicateUsername, verifySignUp.checkDuplicatePhoneNumber],
   async (req, res) => {
     try {
       const { name, surname, phoneNumber, email, username, password } =

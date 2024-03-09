@@ -130,17 +130,15 @@ router.patch(
 
 router.delete(routes.delete, [authjwt.verifyToken], async (req, res) => {
   try {
-    const id = req.userId;
-    const stateUpdated = {
-      state: false,
-    };
-    await User.findByIdAndUpdate(id, stateUpdated)
+    const user = await User.findById(req.userId);
+
+    User.deleteOne(user._id)
       .then(() => {
-        res.json({ message: "The account has been disabled correctly" });
+        res.json({ message: "The user has been deleted correctly" });
       })
       .catch((error) => {
         res.status(500).json({
-          message: "The password account not be disabled " + error.message,
+          message: "The user could not be performed: " + error.message,
         });
       });
   } catch (error) {
