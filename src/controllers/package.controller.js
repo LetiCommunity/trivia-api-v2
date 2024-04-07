@@ -64,8 +64,8 @@ router.get(
         res.json(packages);
       } else {
         res
-          .status(404)
-          .json({ message: "You do not a travel to receive sugestiones" });
+          .status(204)
+          .json({ message: "You do not have a travel to receive sugestions" });
       }
     } catch (error) {
       res.status(500).json({ message: error.message });

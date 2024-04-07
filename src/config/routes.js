@@ -13,6 +13,7 @@ module.exports = {
     signin: "/signin",
     signout: "/signout",
     resetPassword: "/resetPassword",
+    app: "/app",
 
     // Filter routes
     indexByDate: "/filterByDate",
